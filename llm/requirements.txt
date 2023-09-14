@@ -1,0 +1,12 @@
+torch==2.0.1
+torchvision==0.15.2
+torchtext==0.15.2
+fastai==2.7.12
+tokenizers==0.13.3
+torchdata==0.6.1
+transformers== 4.33.0
+accelerate==0.22.0
+nvgpu==0.10.0
+torchserve==0.8.1
+torch-model-archiver==0.8.1
+einops==0.6.1

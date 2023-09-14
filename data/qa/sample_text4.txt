@@ -1,0 +1,3 @@
+Question: Select the fish below.
+Context: Fish live underwater. They have fins, not limbs. Fish are cold-blooded. The body temperature of coldblooded animals depends on their environment. A Banggai cardinalfish is an example of a fish.
+Choices: (A) green moray eel (B) rabbit (C) woodpecker (D) bald eagle

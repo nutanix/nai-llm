@@ -1,0 +1,20 @@
+Please summarize the following conversation into five bullet points.
+
+#Person1#: Could you do me a favor? 
+#Person2#: Sure. What is it? 
+#Person1#: Could you run over to the store? We need a few things. 
+#Person2#: All right. What do you want me to get? 
+#Person1#: Well, could you pick up some sugar? 
+#Person2#: Okay. How much? 
+#Person1#: A small bag. I guess we also need a few oranges. 
+#Person2#: How many? 
+#Person1#: Oh, let's see. . . About six. 
+#Person2#: Anything else? 
+#Person1#: Yes. We're out of milk. 
+#Person2#: Okay. How much do you want me to get? A gallon? 
+#Person1#: No. I think a half gallon will be enough. 
+#Person2#: Is that all? #Person1#: I think so. Have you got all that? 
+#Person2#: Yes. That's small bag of sugar, four oranges, and a half gallon of milk. 
+#Person1#: Do you have enough money? 
+#Person2#: I think so. 
+#Person1#: Thanks very much. I appreciate it.
