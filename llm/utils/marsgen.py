@@ -67,7 +67,8 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
                                              handler, extra_files,
                                              runtime, archive_format, 
                                              requirements_file,
-                                             export_path)
+                                             export_path,
+                                             debug=debug)
 
         debug and print(f"## In directory: {os.getcwd()} | Executing command: {cmd}\n")
 
@@ -76,7 +77,8 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
             marfile = "{}.mar".format(model["model_name"])
             print(f"## {marfile} is generated.\n")
         except subprocess.CalledProcessError as exc:
-            print("## {} creation failed !, error: {}\n".format(model["model_name"], exc))
+            print("## Creation failed !\n")
+            debug and print("## {} creation failed !, error: {}\n".format(model["model_name"], exc))
             sys.exit(1)
 
         if model.get("serialized_file_remote") and \
@@ -90,7 +92,7 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
 def model_archiver_command_builder(model_name=None, version=None, model_file=None,
                                    serialized_file=None, handler=None, extra_files=None,
                                    runtime=None, archive_format=None, requirements_file=None,
-                                   export_path=None, force=True):
+                                   export_path=None, force=True, debug=False):
     cmd = "torch-model-archiver"
     if model_name:
         cmd += f" --model-name {model_name}"
@@ -114,5 +116,6 @@ def model_archiver_command_builder(model_name=None, version=None, model_file=Non
         cmd += f" --export-path {export_path}"
     if force:
         cmd += " --force"
-    print(cmd)
+    print(f"\n## Generating mar file, will take few mins.\n")
+    debug and print(cmd)
     return cmd
