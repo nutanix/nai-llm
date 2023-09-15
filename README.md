@@ -77,15 +77,15 @@ Should print "Inference Run Successful" as a message at the end
 ##### Examples
 For 1 GPU Inference with official MPT-7B model and keep torchserve alive:
 ```
-bash llm/run.sh -n mpt_7b -d data/qa -a /home/ubuntu/models/mpt_7b/model_store/mpt_7b.mar -g 1 -k
+bash llm/run.sh -n mpt_7b -d data/translate -a /home/ubuntu/models/mpt_7b/model_store/mpt_7b.mar -g 1 -k
 ```
 For 1 GPU Inference with official Falcon-7B model and keep torchserve alive:
 ```
-bash llm/run.sh -n falcon_7b -d data/summarize -a /home/ubuntu/models/falcon_7b/model_store/falcon_7b.mar -g 1 -k
+bash llm/run.sh -n falcon_7b -d data/qa -a /home/ubuntu/models/falcon_7b/model_store/falcon_7b.mar -g 1 -k
 ```
 For 1 GPU Inference with official Llama2-7B model and keep torchserve alive:
 ```
-bash llm/run.sh -n llama2_7b -d data/translate -a /home/ubuntu/models/llama2_7b/model_store/llama2_7b.mar -g 1 -k
+bash llm/run.sh -n llama2_7b -d data/summarize -a /home/ubuntu/models/llama2_7b/model_store/llama2_7b.mar -g 1 -k
 ```
 
 #### Describe registered model
