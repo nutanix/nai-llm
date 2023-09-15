@@ -54,9 +54,9 @@ def try_and_handle(cmd, dry_run=False):
         except subprocess.CalledProcessError as e:
             raise e
 
-def check_if_path_exists(filepath):
+def check_if_path_exists(filepath, param = ""):
     if not os.path.exists(filepath):
-        print(f"Filepath does not exist - {filepath}")
+        print(f"Filepath does not exist {param} - {filepath}")
         sys.exit(1)
 
 def create_folder_if_not_exits(path):
