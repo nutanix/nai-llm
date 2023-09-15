@@ -1,5 +1,6 @@
-Please summarize the following conversation into five bullet points.
+Take a deep breathe and provide summary of the following conversation into five bullet points.
 
+Conversation:
 #Person1#: Could you do me a favor? 
 #Person2#: Sure. What is it? 
 #Person1#: Could you run over to the store? We need a few things. 
@@ -18,3 +19,5 @@ Please summarize the following conversation into five bullet points.
 #Person1#: Do you have enough money? 
 #Person2#: I think so. 
 #Person1#: Thanks very much. I appreciate it.
+
+Summary:

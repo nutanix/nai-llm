@@ -16,6 +16,7 @@ class DownloadDataModel(object):
     repo_id = str()
     handler_path = str()
     hf_token = str()
+    debug = bool()
 
 
 def set_values(args):
@@ -27,11 +28,12 @@ def set_values(args):
     dl_model.mar_output = args.mar_output
     dl_model.handler_path = args.handler_path
     dl_model.hf_token = args.hf_token
+    dl_model.debug = args.debug
     return dl_model
 
 
 def run_download(dl_model):
-    check_if_path_exists(dl_model.model_path)
+    check_if_path_exists(dl_model.model_path, "model_path")
     mar_config_path = os.path.join(os.path.dirname(__file__), 'model_config.json')
     check_if_path_exists(mar_config_path)
 
@@ -58,7 +60,8 @@ def run_download(dl_model):
 
 
 def create_mar(dl_model):
-    check_if_path_exists(dl_model.model_path)
+    check_if_path_exists(dl_model.model_path, "model_path")
+    check_if_path_exists(dl_model.mar_output, "mar_output")
     mar_config_path = os.path.join(os.path.dirname(__file__), 'model_config.json')
     check_if_path_exists(mar_config_path)
     if dl_model.handler_path == "":
@@ -68,11 +71,15 @@ def create_mar(dl_model):
                 dl_model.handler_path = os.path.join(os.path.dirname(__file__), models[dl_model.model_name]["handler"])
     mg.generate_mars(dl_model=dl_model, 
                      mar_config=mar_config_path,
-                     model_store_dir=dl_model.mar_output)
+                     model_store_dir=dl_model.mar_output,
+                     debug=dl_model.debug)
 
 
 def run_script(args):
     dl_model = set_values(args)
+    dl_model.download_model and check_if_path_exists(dl_model.model_path, "model_path")
+    dl_model.gen_mar and check_if_path_exists(dl_model.mar_output, "mar_output")
+
     if dl_model.download_model:
         dl_model = run_download(dl_model)
     if dl_model.gen_mar:
@@ -85,15 +92,17 @@ if __name__ == '__main__':
                         metavar='mn', help='name of the model')
     parser.add_argument('--no_download', action='store_false',
                         help='flag to not download')
-    parser.add_argument('--model_path', type=str, default="", required=True,
+    parser.add_argument('--model_path', type=str, default="",
                         metavar='mp', help='absolute path to model folder')
     parser.add_argument('--no_generate', action='store_false',
                         help='flag to not generating mar')
-    parser.add_argument('--mar_output', type=str, default="model_store", required=True,
+    parser.add_argument('--mar_output', type=str, default="",
                         metavar='mx', help='absolute path of output mar')
     parser.add_argument('--handler_path', type=str, default="",
                         metavar='hp', help='absolute path of handler')
     parser.add_argument('--hf_token', type=str, default=None,
                         metavar='hft', help='HuggingFace Hub token to download LLAMA(2) models')
+    parser.add_argument('--debug', action='store_true',
+                        help='flag to debug')
     args = parser.parse_args()
     run_script(args)

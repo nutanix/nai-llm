@@ -65,7 +65,7 @@ class LLMHandler(BaseHandler, ABC):
         logger.info("Running Inference")
         encoding = input_batch
         logger.info("Generating text")
-        generated_ids = self.model.generate(encoding, max_new_tokens = 300)
+        generated_ids = self.model.generate(encoding, max_new_tokens = 200)
         inference=[]
         inference = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
         logger.info("Generated text is: {}".format(', '.join(map(str, inference))))
