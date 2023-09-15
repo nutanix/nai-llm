@@ -102,7 +102,7 @@ if __name__ == '__main__':
                         metavar='hp', help='absolute path of handler')
     parser.add_argument('--hf_token', type=str, default=None,
                         metavar='hft', help='HuggingFace Hub token to download LLAMA(2) models')
-    parser.add_argument('--debug', action='store_false',
+    parser.add_argument('--debug', action='store_true',
                         help='flag to debug')
     args = parser.parse_args()
     run_script(args)
