@@ -5,7 +5,7 @@ import json
 from utils.inference_utils import get_inference_with_mar, error_msg_print
 from utils.shell_utils import rm_dir
 from utils import tsutils as ts
-from utils.system_utils import check_if_path_exists
+from utils.system_utils import check_if_path_exists, set_model_params
 from utils.system_utils import create_folder_if_not_exits, check_file_extension, remove_suffix_if_starts_with
 import utils.inference_data_model as dm
 
@@ -13,6 +13,7 @@ import utils.inference_data_model as dm
 
 def run_inference_with_mar(args):
     check_if_path_exists(args.mar)
+    
     data_model = dm.set_data_model(data=args.data, gpus=args.gpus,
                                    gen_folder=args.gen_folder_name,
                                    model_name=args.model_name,
@@ -40,7 +41,7 @@ def run_inference(args, model_config_path):
                             print(gpu)
                         error_msg_print()
                         sys.exit(1)
-
+            set_model_params(model_config_path, args.model_name)
             run_inference_with_mar(args)
         else:
             print("The model archive file does not have the correct extension.")

@@ -6,6 +6,12 @@
         "handler": "handler.py",
         "extra_files": "adapt_tokenizer.py,attention.py,blocks.py,config.json,configuration_mpt.py,custom_embedding.py,flash_attn_triton.py,generation_config.json,hf_prefixlm_converter.py,meta_init_context.py,modeling_mpt.py,norm.py,param_init_fns.py,pytorch_model-00002-of-00002.bin,pytorch_model.bin.index.json,special_tokens_map.json,tokenizer_config.json,tokenizer.json",
         "repo_id": "mosaicml/mpt-7b",
+        "model_params":{
+            "temperature" : 0.7,
+            "repetition_penalty" : 1.75,
+            "top_p" : 1.0,
+            "max_new_tokens" : 200
+        },
         "registration_params":{
             "batch_size" : 1,
             "max_batch_delay" : 200,
@@ -19,7 +25,13 @@
         "serialized_file_local": "pytorch_model-00001-of-00002.bin",
         "handler": "handler.py",
         "extra_files":"config.json,configuration_RW.py,generation_config.json,modelling_RW.py,pytorch_model.bin.index.json,special_tokens_map.json,tokenizer_config.json,tokenizer.json,pytorch_model-00002-of-00002.bin",
-        "repo_id": "tiiuae/falcon-7b", 
+        "repo_id": "tiiuae/falcon-7b",
+        "model_params":{
+            "temperature" : 0.5,
+            "repetition_penalty" : 2.0,
+            "top_p" : 0.9,
+            "max_new_tokens" : 200
+        }, 
         "registration_params":{
             "batch_size" : 1,
             "max_batch_delay" : 200,
@@ -34,6 +46,12 @@
         "handler": "handler.py",
         "extra_files":"config.json,generation_config.json,pytorch_model.bin.index.json,special_tokens_map.json,tokenizer_config.json,tokenizer.json,pytorch_model-00002-of-00002.bin",
         "repo_id": "meta-llama/Llama-2-7b-hf",
+        "model_params":{
+            "temperature" : 0.6,
+            "repetition_penalty" : 1.75,
+            "top_p" : 0.9,
+            "max_new_tokens" : 200
+        }, 
         "registration_params":{
             "batch_size" : 1,
             "max_batch_delay" : 200,
