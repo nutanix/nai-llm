@@ -70,7 +70,7 @@ class LLMHandler(BaseHandler, ABC):
             try:
                 temperature= float(temperature)
             except ValueError:
-                print(f"Warning: Unable to convert {temperature} to an float.")
+                print(f"Warning: Unable to convert temperature {temperature} to an float.")
         else:
             temperature=1.0
         rep_penalty= os.environ.get("TS_REP_PENALTY")
@@ -78,7 +78,7 @@ class LLMHandler(BaseHandler, ABC):
             try:
                 rep_penalty= float(rep_penalty)
             except ValueError:
-                print(f"Warning: Unable to convert {rep_penalty} to an float.")
+                print(f"Warning: Unable to convert repitition_penalty {rep_penalty} to an float.")
         else:
             rep_penalty=1.0
         top_p=os.environ.get("TS_TOP_P")
@@ -86,7 +86,7 @@ class LLMHandler(BaseHandler, ABC):
             try:
                 top_p= float(top_p)
             except ValueError:
-                print(f"Warning: Unable to convert {top_p} to an float.")
+                print(f"Warning: Unable to convert top_p {top_p} to an float.")
         else:
             top_p=1.0
         max_tokens=os.environ.get("TS_MAX_TOKENS")
@@ -94,13 +94,11 @@ class LLMHandler(BaseHandler, ABC):
             try:
                 max_tokens= int(max_tokens)
             except ValueError:
-                print(f"Warning: Unable to convert {max_tokens} to an integer.")
+                print(f"Warning: Unable to convert max_tokens {max_tokens} to an integer.")
         else:
             max_tokens=200
-        if temperature==1.0 and rep_penalty==1.0 and top_p==1.0:
-            generated_ids = self.model.generate(encoding, max_new_tokens = max_tokens)
-        else:
-            generated_ids = self.model.generate(encoding, max_new_tokens = max_tokens, pad_token_id = self.tokenizer.eos_token_id, eos_token_id = self.tokenizer.eos_token_id, repetition_penalty=rep_penalty, do_sample = True, temperature=temperature, top_p=top_p)
+        
+        generated_ids = self.model.generate(encoding, max_new_tokens = max_tokens, pad_token_id = self.tokenizer.eos_token_id, eos_token_id = self.tokenizer.eos_token_id, repetition_penalty=rep_penalty, do_sample = True, temperature=temperature, top_p=top_p)
         
         inference=[]
         inference = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
