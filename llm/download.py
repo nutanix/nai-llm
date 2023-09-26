@@ -5,13 +5,16 @@ import sys
 from huggingface_hub import snapshot_download
 import utils.inference_utils
 import utils.marsgen as mg
-from utils.system_utils import check_if_path_exists
+from utils.system_utils import check_if_path_exists, create_folder_if_not_exits
+
+MODEL_STORE = 'model-store'
 
 class DownloadDataModel(object):
     model_name = str()
     model_path = str()
     download_model = bool()
     gen_mar = bool()
+    for_k8s = bool()
     mar_output = str()
     repo_id = str()
     handler_path = str()
@@ -25,6 +28,7 @@ def set_values(args):
     dl_model.model_path = args.model_path
     dl_model.download_model = args.no_download
     dl_model.gen_mar = args.no_generate
+    dl_model.for_k8s = args.k8s
     dl_model.mar_output = args.mar_output
     dl_model.handler_path = args.handler_path
     dl_model.hf_token = args.hf_token
@@ -82,7 +86,13 @@ def run_script(args):
 
     if dl_model.download_model:
         dl_model = run_download(dl_model)
+    
     if dl_model.gen_mar:
+        if dl_model.for_k8s:
+            path = os.path.join(dl_model.mar_output, dl_model.model_name, MODEL_STORE)
+            create_folder_if_not_exits(path)
+            dl_model.mar_output = path
+
         create_mar(dl_model)
 
 
@@ -96,6 +106,8 @@ if __name__ == '__main__':
                         metavar='mp', help='absolute path to model folder')
     parser.add_argument('--no_generate', action='store_false',
                         help='flag to not generating mar')
+    parser.add_argument('--k8s', action='store_true',
+                        help='flag to handle request for k8s')
     parser.add_argument('--mar_output', type=str, default="",
                         metavar='mx', help='absolute path of output mar')
     parser.add_argument('--handler_path', type=str, default="",

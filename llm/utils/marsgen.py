@@ -49,7 +49,8 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
 
         requirements_file = None
         if model.get("requirements_file") and model["requirements_file"]:
-            requirements_file = model["requirements_file"]
+            requirements_file = os.path.join(os.path.dirname(__file__), model["requirements_file"])
+            check_if_path_exists(requirements_file)
 
         export_path = model_store_dir
         if model.get("export_path") and model["export_path"]:
