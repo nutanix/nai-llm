@@ -66,7 +66,7 @@ class LLMHandler(BaseHandler, ABC):
                     for row_data in data.get("inputs"):
                         self.request_list[idx] += 1                                  # To handle multiple inputs inside a single request use-case
                         input_text = row_data.get('data')[0]
-                        
+
                         if isinstance(input_text, (bytes, bytearray)):
                             input_text = input_text.decode("utf-8")
                         input_list.append(input_text)
@@ -146,12 +146,3 @@ class LLMHandler(BaseHandler, ABC):
         output_data["datatype"] = "BYTES"
         output_data["data"] = [data]
         return output_data
-
-    def _get_json(self, jsonData):
-        try:
-            logger.info(jsonData)
-            print(jsonData)
-            data = json.loads(jsonData)
-        except ValueError as err:
-            return False
-        return data
