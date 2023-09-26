@@ -70,41 +70,36 @@ class LLMHandler(BaseHandler, ABC):
             try:
                 temperature= float(temperature)
             except ValueError:
-                print(f"Warning: Unable to convert 'temperature' to an float.")
+                print(f"Warning: Unable to convert {temperature} to an float.")
         else:
             temperature=1.0
-        print("temp "+str(temperature))
         rep_penalty= os.environ.get("TS_REP_PENALTY")
         if rep_penalty is not None and rep_penalty.strip():
             try:
                 rep_penalty= float(rep_penalty)
             except ValueError:
-                print(f"Warning: Unable to convert 'repition_penalty' to an float.")
+                print(f"Warning: Unable to convert {rep_penalty} to an float.")
         else:
             rep_penalty=1.0
-        print(rep_penalty)
         top_p=os.environ.get("TS_TOP_P")
         if top_p is not None and top_p.strip():
             try:
                 top_p= float(top_p)
             except ValueError:
-                print(f"Warning: Unable to convert 'top_p' to an float.")
+                print(f"Warning: Unable to convert {top_p} to an float.")
         else:
             top_p=1.0
-        print(top_p)
         max_tokens=os.environ.get("TS_MAX_TOKENS")
         if max_tokens is not None and max_tokens.strip():
             try:
                 max_tokens= int(max_tokens)
             except ValueError:
-                print(f"Warning: Unable to convert 'max_tokens' to an integer.")
+                print(f"Warning: Unable to convert {max_tokens} to an integer.")
         else:
             max_tokens=200
-        print(max_tokens)
         if temperature==1.0 and rep_penalty==1.0 and top_p==1.0:
             generated_ids = self.model.generate(encoding, max_new_tokens = max_tokens)
         else:
-            print("non default")
             generated_ids = self.model.generate(encoding, max_new_tokens = max_tokens, pad_token_id = self.tokenizer.eos_token_id, eos_token_id = self.tokenizer.eos_token_id, repetition_penalty=rep_penalty, do_sample = True, temperature=temperature, top_p=top_p)
         
         inference=[]

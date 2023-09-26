@@ -75,7 +75,11 @@ def remove_suffix_if_starts_with(string, suffix):
     
 def set_model_params(model_config_path, model_name):
     # Clear existing environment variables if they exist
-    for var_name in ["TS_TEMPERATURE", "TS_REP_PENALTY", "TS_TOP_P", "TS_MAX_TOKENS"]:
+    generation_params = {"TS_TEMPERATURE":"temperature", 
+                         "TS_REP_PENALTY":"repetition_penalty",
+                         "TS_TOP_P":"top_p", 
+                         "TS_MAX_TOKENS":"max_new_tokens"}
+    for var_name in generation_params.keys():
         if var_name in os.environ:
             del os.environ[var_name]
     
@@ -84,12 +88,6 @@ def set_model_params(model_config_path, model_name):
         model_config = json.loads(f.read())
         if model_name in model_config:
             param_config = model_config[model_name]["model_params"]
-            if "temperature" in param_config:
-                os.environ["TS_TEMPERATURE"] = str(param_config['temperature'])
-                print(os.environ["TS_TEMPERATURE"])
-            if "repetition_penalty" in param_config:
-                os.environ["TS_REP_PENALTY"] = str(param_config['repetition_penalty'])
-            if "top_p" in param_config:
-                os.environ["TS_TOP_P"] = str(param_config['top_p'])
-            if "max_new_tokens" in param_config:
-                os.environ["TS_MAX_TOKENS"] = str(param_config['max_new_tokens'])
+            for var_name, var_value in generation_params.items():
+                if var_value in param_config:
+                   os.environ[var_name] = str(param_config[var_value])
