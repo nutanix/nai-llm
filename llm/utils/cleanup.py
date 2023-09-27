@@ -3,10 +3,9 @@ import argparse
 import sys
 from shell_utils import rm_dir
 import tsutils as ts
-import urllib
 
 from kubernetes import client, config
-from kserve import KServeClient, constants
+from kserve import KServeClient
 
 
 def vm():
@@ -20,7 +19,7 @@ def vm():
     rm_dir(os.path.join(dirpath, 'gen'))
 
 def kubernetes(deploy_name):
-    print("Cleaning up all the deployment for -", deploy_name)
+    print("Clean up triggered for all the deployments under -", deploy_name)
     kube_config = config.load_kube_config()
     kserve = KServeClient(client_configuration=kube_config)
     try:

@@ -27,7 +27,7 @@ function vmHelpFunction()
 
 function kubernetesHelpFunction()
 {
-    echo "Usage: $0 -n <MODEL_NAME> -d <INPUT_DATA_ABSOLUTE_PATH>  -g <NUM_OF_GPUS> -m <NFS_LOCAL_MOUNT_LOCATION> -f <NFS_ADDRESS_WITH_SHARE_PATH> [OPTIONAL -k]"
+    echo "Usage: $0 -n <MODEL_NAME> -d <INPUT_DATA_ABSOLUTE_PATH>  -g <NUM_OF_GPUS> -m <NFS_LOCAL_MOUNT_LOCATION> -f <NFS_ADDRESS_WITH_SHARE_PATH> -e <KUBE_DEPLOYMENT_NAME> [OPTIONAL -k]"
     echo -e "\t-m Absolute path to the NFS local mount location"
     echo -e "\t-f NFS server address with share path information"
     echo -e "\t-e Name of the deployment metadata"
@@ -124,8 +124,15 @@ function inference_exec_kubernetes()
     mkdir $mount_path/$model_name/config
     cp $wdir/config.properties $mount_path/$model_name/config/
 
+    export INGRESS_HOST=$(kubectl get po -l istio=ingressgateway -n istio-system -o jsonpath='{.items[0].status.hostIP}')
+    export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')
+
     echo "Running the Inference script";
-    python3 $wdir/kserve_run.py --gpu $gpus --cpu 8 --mem 32Gi --model_name $model_name --mount_path $mount_path --nfs $nfs --deploy_name $deploy_name
+    python3 $wdir/kserve_run.py --gpu $gpus --cpu 8 --mem 32Gi --model_name $model_name --mount_path $mount_path --nfs $nfs --deploy_name $deploy_name --data $data
+
+    if [ -z $stop_server ] ; then
+        python3 $wdir/utils/cleanup.py --k8s --deploy_name $deploy_name
+    fi
 }
 
 # Entry Point
