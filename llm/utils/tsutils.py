@@ -19,7 +19,7 @@ torch_model_archiver_command = {
 def generate_ts_start_cmd(ncs, model_store,
                           config_file, log_file,
                           log_config_file, gpus, debug):
-    cmd = f"TS_SERVICE_ENVELOPE=body TS_NUMBER_OF_GPU={gpus} {torchserve_command[platform.system()]} --start --model-store={model_store}"
+    cmd = f"TS_SERVICE_ENVELOPE=body TS_NUMBER_OF_GPU={gpus} {torchserve_command[platform.system()]} --start --ncs --model-store={model_store}"
     if ncs:
         cmd += " --ncs"
     if config_file:
