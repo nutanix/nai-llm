@@ -75,7 +75,7 @@ class LLMHandler(BaseHandler, ABC):
                 except ValueError:
                     print(f"Warning: Unable to convert {var_value} {param_dict[var_value]} to an float.")
         
-        print(param_dict)
+        
         new_param_dict = {}
         for key, value in param_dict.items():
             if value is not None:
@@ -95,7 +95,7 @@ class LLMHandler(BaseHandler, ABC):
         param_dict['pad_token_id']=self.tokenizer.eos_token_id
         param_dict['eos_token_id']=self.tokenizer.eos_token_id
         param_dict['do_sample']=True
-        print(param_dict)
+        
         generated_ids = self.model.generate(encoding, **param_dict)
         
         inference=[]
