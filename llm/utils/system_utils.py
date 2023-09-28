@@ -75,10 +75,10 @@ def remove_suffix_if_starts_with(string, suffix):
     
 def set_model_params(model_config_path, model_name):
     # Clear existing environment variables if they exist
-    generation_params = {"TS_TEMPERATURE":"temperature", 
-                         "TS_REP_PENALTY":"repetition_penalty",
-                         "TS_TOP_P":"top_p", 
-                         "TS_MAX_TOKENS":"max_new_tokens"}
+    generation_params = {"NAI_TEMPERATURE":"temperature", 
+                         "NAI_REP_PENALTY":"repetition_penalty",
+                         "NAI_TOP_P":"top_p", 
+                         "NAI_MAX_TOKENS":"max_new_tokens"}
     for var_name in generation_params.keys():
         if var_name in os.environ:
             del os.environ[var_name]

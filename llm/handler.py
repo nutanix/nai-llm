@@ -60,45 +60,43 @@ class LLMHandler(BaseHandler, ABC):
         logger.info("Recieved text: {}".format(', '.join(map(str, input_list))))
         encoded_input = self.tokenizer(input_list, padding=True, return_tensors='pt')["input_ids"].to(self.device)
         return encoded_input
+    
+    def getenv(self, param_dict):
+        generation_params ={"NAI_TEMPERATURE":"temperature", 
+                            "NAI_REP_PENALTY":"repetition_penalty",
+                            "NAI_TOP_P":"top_p", 
+                            "NAI_MAX_TOKENS":"max_new_tokens"}
+        
+        for var_name, var_value in generation_params.items():
+            param_dict[var_value]=os.environ.get(var_name)
+            if param_dict[var_value] is not None and param_dict[var_value].strip():
+                try:
+                    param_dict[var_value]= float(param_dict[var_value])
+                except ValueError:
+                    print(f"Warning: Unable to convert {var_value} {param_dict[var_value]} to an float.")
+        
+        print(param_dict)
+        new_param_dict = {}
+        for key, value in param_dict.items():
+            if value is not None:
+                new_param_dict[key] = value
+            else:
+                if key=="max_new_tokens":
+                    new_param_dict[key]=200
+            
+        return new_param_dict
 
     def inference(self, input_batch):
         logger.info("Running Inference")
         encoding = input_batch
         logger.info("Generating text")
-        temperature = os.environ.get("TS_TEMPERATURE")
-        if temperature is not None and temperature.strip():
-            try:
-                temperature= float(temperature)
-            except ValueError:
-                print(f"Warning: Unable to convert temperature {temperature} to an float.")
-        else:
-            temperature=1.0
-        rep_penalty= os.environ.get("TS_REP_PENALTY")
-        if rep_penalty is not None and rep_penalty.strip():
-            try:
-                rep_penalty= float(rep_penalty)
-            except ValueError:
-                print(f"Warning: Unable to convert repitition_penalty {rep_penalty} to an float.")
-        else:
-            rep_penalty=1.0
-        top_p=os.environ.get("TS_TOP_P")
-        if top_p is not None and top_p.strip():
-            try:
-                top_p= float(top_p)
-            except ValueError:
-                print(f"Warning: Unable to convert top_p {top_p} to an float.")
-        else:
-            top_p=1.0
-        max_tokens=os.environ.get("TS_MAX_TOKENS")
-        if max_tokens is not None and max_tokens.strip():
-            try:
-                max_tokens= int(max_tokens)
-            except ValueError:
-                print(f"Warning: Unable to convert max_tokens {max_tokens} to an integer.")
-        else:
-            max_tokens=200
-        
-        generated_ids = self.model.generate(encoding, max_new_tokens = max_tokens, pad_token_id = self.tokenizer.eos_token_id, eos_token_id = self.tokenizer.eos_token_id, repetition_penalty=rep_penalty, do_sample = True, temperature=temperature, top_p=top_p)
+        param_dict={}
+        param_dict=self.getenv(param_dict)
+        param_dict['pad_token_id']=self.tokenizer.eos_token_id
+        param_dict['eos_token_id']=self.tokenizer.eos_token_id
+        param_dict['do_sample']=True
+        print(param_dict)
+        generated_ids = self.model.generate(encoding, **param_dict)
         
         inference=[]
         inference = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
