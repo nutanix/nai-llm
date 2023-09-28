@@ -74,25 +74,26 @@ def stop_torchserve(wait_for=10):
 
 def set_model_params(model_name):
     dirpath = os.path.dirname(__file__)
-    # Clear existing environment variables if they exist
-    generation_params = {"NAI_TEMPERATURE":"temperature", 
+    generation_params = {"NAI_TEMPERATURE":"temperature",
                          "NAI_REP_PENALTY":"repetition_penalty",
-                         "NAI_TOP_P":"top_p", 
+                         "NAI_TOP_P":"top_p",
                          "NAI_MAX_TOKENS":"max_new_tokens"}
-
-    # Set the new environment variables with the provided values in model_config and 
-    # delete the environment variable value if not specified in model_config 
-    with open(os.path.join(dirpath, '../model_config.json'), 'r') as f:
-        model_config = json.loads(f.read())
+    # Set the new environment variables with the provided values in model_config and
+    # delete the environment variable value if not specified in model_config or if modes_parms not present in model_config
+    with open(os.path.join(dirpath, '../model_config.json'), 'r') as file:
+        model_config = json.loads(file.read())
         if model_name in model_config:
             if "model_params" in model_config[model_name]:
                 param_config = model_config[model_name]["model_params"]
                 for param_name, param_value in generation_params.items():
                     if param_value in param_config:
                         os.environ[param_name] = str(param_config[param_value])
-                    else:
-                        if param_name in os.environ:
-                            del os.environ[param_name]
+                    elif param_name in os.environ:
+                        del os.environ[param_name]
+            else:
+                for param_name, param_value in generation_params.items():
+                    if param_name in os.environ:
+                        del os.environ[param_name]
 
 def get_params_for_registration(model_name):
     dirpath = os.path.dirname(__file__)
