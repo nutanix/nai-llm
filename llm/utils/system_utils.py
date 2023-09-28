@@ -2,7 +2,6 @@ import os
 import platform
 import subprocess
 import sys
-import json
 
 REPO_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 sys.path.append(REPO_ROOT)
@@ -72,22 +71,3 @@ def remove_suffix_if_starts_with(string, suffix):
         return string[len(suffix):]  
     else:
         return string  
-    
-def set_model_params(model_config_path, model_name):
-    # Clear existing environment variables if they exist
-    generation_params = {"NAI_TEMPERATURE":"temperature", 
-                         "NAI_REP_PENALTY":"repetition_penalty",
-                         "NAI_TOP_P":"top_p", 
-                         "NAI_MAX_TOKENS":"max_new_tokens"}
-    for var_name in generation_params.keys():
-        if var_name in os.environ:
-            del os.environ[var_name]
-    
-    # Set the new environment variables with the provided values in model_config
-    with open(model_config_path) as f:
-        model_config = json.loads(f.read())
-        if model_name in model_config:
-            param_config = model_config[model_name]["model_params"]
-            for var_name, var_value in generation_params.items():
-                if var_value in param_config:
-                   os.environ[var_name] = str(param_config[var_value])
