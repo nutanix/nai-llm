@@ -63,13 +63,13 @@ class LLMHandler(BaseHandler, ABC):
                                        return_tensors='pt')["input_ids"].to(self.device)
         return encoded_input
 
-    def get_env_value(self, env_var, param):
+    def get_env_value(self, env_var):
         value=os.environ.get(env_var)
         if value is not None and value.strip():
             try:
                 value= float(value)
             except ValueError:
-                print(f"Warning: Unable to convert {param} {value} to an float.")
+                print(f"Warning: Unable to convert {env_var} {value} to an float.")
         return value
 
     def inference(self, input_batch):
@@ -78,16 +78,16 @@ class LLMHandler(BaseHandler, ABC):
         logger.info("Generating text")
         param_dict={}
         if os.environ.get('NAI_TEMPERATURE'):
-            param_dict['temperature'] =  self.get_env_value('NAI_TEMPERATURE', 'temperature')
+            param_dict['temperature'] =  self.get_env_value('NAI_TEMPERATURE')
 
         if os.environ.get('NAI_REP_PENALTY'):
-            param_dict['repetition_penalty'] =  self.get_env_value('NAI_REP_PENALTY', 'repetition_penalty')
+            param_dict['repetition_penalty'] =  self.get_env_value('NAI_REP_PENALTY')
 
         if os.environ.get('NAI_TOP_P') :
-            param_dict['top_p'] =  self.get_env_value('NAI_TOP_P', 'top_p')
+            param_dict['top_p'] =  self.get_env_value('NAI_TOP_P')
 
         if os.environ.get('NAI_MAX_TOKENS'):
-            param_dict['max_new_tokens'] =  self.get_env_value('NAI_MAX_TOKENS', 'max_new_tokens')
+            param_dict['max_new_tokens'] =  self.get_env_value('NAI_MAX_TOKENS')
         else:
             param_dict['max_new_tokens'] =  200
 
