@@ -18,8 +18,8 @@ class LLMHandler(BaseHandler, ABC):
     def initialize(self, ctx):
         properties = ctx.system_properties
         model_dir = properties.get("model_dir")
-
-        if os.environ.get('TS_NUMBER_OF_GPU') and torch.cuda.is_available() and properties.get("gpu_id") is not None: # torchserve sets gpu_id in round robin fashion for workers
+        # torchserve sets gpu_id in round robin fashion for workers
+        if os.environ.get('TS_NUMBER_OF_GPU') and torch.cuda.is_available() and properties.get("gpu_id") is not None:
             self.map_location = "cuda"
             self.device = torch.device(
                 self.map_location + ":" + str(properties.get("gpu_id"))
@@ -57,18 +57,49 @@ class LLMHandler(BaseHandler, ABC):
                 input_text = input_text.decode("utf-8")
             input_list.append(input_text)
 
-        logger.info("Recieved text: {}".format(', '.join(map(str, input_list))))
-        encoded_input = self.tokenizer(input_list, padding=True, return_tensors='pt')["input_ids"].to(self.device)
+        logger.info(f"Recieved text: {', '.join(map(str, input_list))}")
+        encoded_input = self.tokenizer(input_list,
+                                       padding=True,
+                                       return_tensors='pt')["input_ids"].to(self.device)
         return encoded_input
+
+    def get_env_value(self, env_var):
+        value=os.environ.get(env_var)
+        if value is not None and value.strip():
+            try:
+                value= float(value)
+            except ValueError:
+                print(f"Warning: Unable to convert {env_var} {value} to an float.")
+        return value
 
     def inference(self, input_batch):
         logger.info("Running Inference")
         encoding = input_batch
         logger.info("Generating text")
-        generated_ids = self.model.generate(encoding, max_new_tokens = 200)
+        param_dict={}
+        if os.environ.get('NAI_TEMPERATURE'):
+            param_dict['temperature'] =  self.get_env_value('NAI_TEMPERATURE')
+
+        if os.environ.get('NAI_REP_PENALTY'):
+            param_dict['repetition_penalty'] =  self.get_env_value('NAI_REP_PENALTY')
+
+        if os.environ.get('NAI_TOP_P') :
+            param_dict['top_p'] =  self.get_env_value('NAI_TOP_P')
+
+        if os.environ.get('NAI_MAX_TOKENS'):
+            param_dict['max_new_tokens'] =  self.get_env_value('NAI_MAX_TOKENS')
+        else:
+            param_dict['max_new_tokens'] =  200
+
+        param_dict['pad_token_id']=self.tokenizer.eos_token_id
+        param_dict['eos_token_id']=self.tokenizer.eos_token_id
+        param_dict['do_sample']=True
+
+        generated_ids = self.model.generate(encoding, **param_dict)
+
         inference=[]
         inference = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-        logger.info("Generated text is: {}".format(', '.join(map(str, inference))))
+        logger.info(f"Generated text is: {', '.join(map(str, inference))}")
         return inference
 
     def postprocess(self, inference_output):

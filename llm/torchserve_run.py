@@ -13,6 +13,7 @@ import utils.inference_data_model as dm
 
 def run_inference_with_mar(args):
     check_if_path_exists(args.mar)
+    
     data_model = dm.set_data_model(data=args.data, gpus=args.gpus,
                                    gen_folder=args.gen_folder_name,
                                    model_name=args.model_name,
@@ -35,12 +36,12 @@ def run_inference(args, model_config_path):
                     gpu_type_list = gpu_config[args.model_name]["gpu_type"]
                     gpu_type = remove_suffix_if_starts_with(args.gpu_type, "NVIDIA")
                     if gpu_type not in gpu_type_list:
-                        print("This GPU Type is not supported, the supported GPU Types are:")
+                        print("WARNING: This GPU Type is not validated, the validated GPU Types are:")
                         for gpu in gpu_type_list:
                             print(gpu)
-                        error_msg_print()
-                        sys.exit(1)
-
+                        #error_msg_print()
+                        #sys.exit(1)
+            ts.set_model_params(args.model_name)
             run_inference_with_mar(args)
         else:
             print("The model archive file does not have the correct extension.")
