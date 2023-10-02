@@ -7,6 +7,6 @@ torchdata==0.6.1
 transformers== 4.33.0
 accelerate==0.22.0
 nvgpu==0.10.0
-torchserve==0.8.1
+torchserve==0.8.2
 torch-model-archiver==0.8.1
 einops==0.6.1
