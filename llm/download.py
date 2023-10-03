@@ -2,7 +2,7 @@ import os
 import argparse
 import json
 import sys
-from huggingface_hub import snapshot_download
+from huggingface_hub import snapshot_download, HfApi
 import utils.inference_utils
 import utils.marsgen as mg
 from utils.system_utils import check_if_path_exists
@@ -14,6 +14,7 @@ class DownloadDataModel(object):
     gen_mar = bool()
     mar_output = str()
     repo_id = str()
+    repo_version=str()
     handler_path = str()
     hf_token = str()
     debug = bool()
@@ -40,7 +41,14 @@ def run_download(dl_model):
     with open(mar_config_path) as f:
         models = json.loads(f.read())
         if dl_model.model_name in models:
-            dl_model.repo_id = models[dl_model.model_name]['repo_id']
+            try:
+                dl_model.repo_id = models[dl_model.model_name]['repo_id']
+                dl_model.repo_version = models[dl_model.model_name]['repo_version']
+                hf_api = HfApi()
+                initial_commit = hf_api.list_repo_commits(repo_id=dl_model.repo_id, revision=dl_model.repo_version)
+            except Exception as ex:
+                print(f"## Error: Please check your repo_id or repo_version in model config file")
+                sys.exit(1)
         else:
             print("## Please check your model name, it should be one of the following : ")
             print(list(models.keys()))
@@ -52,6 +60,7 @@ def run_download(dl_model):
     
     print("## Starting model files download\n")
     snapshot_download(repo_id=dl_model.repo_id,
+                      revision = dl_model.repo_version,
                       local_dir=dl_model.model_path,
                       local_dir_use_symlinks=False,
                       token=dl_model.hf_token)
