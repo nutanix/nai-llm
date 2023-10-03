@@ -64,8 +64,8 @@ def create_folder_if_not_exits(path):
     print(f"The new directory is created! - {path}")
 
 def check_if_folder_empty(path):
-    dir = os.listdir(path)
-    return True if len(dir)==0 else False
+    dir_items = os.listdir(path)
+    return True if len(dir_items)==0 else False
 
 def check_file_extension(file_path, extension):
     return file_path.endswith(extension)
