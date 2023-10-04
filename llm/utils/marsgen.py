@@ -3,6 +3,19 @@ import os
 import sys
 import subprocess
 from system_utils import check_if_path_exists
+from huggingface_hub import HfApi
+from collections import Counter
+import re
+
+FILE_EXTENSIONS_TO_IGNORE = [".safetensors", ".safetensors.index.json"]
+
+def compare_lists(list1, list2):
+    return Counter(list1)==Counter(list2)
+
+def filter_files_by_extension(filenames, extensions_to_remove):
+    pattern = '|'.join([re.escape(suffix) + '$' for suffix in extensions_to_remove]) # using extensions to generate a regex pattern
+    filtered_filenames = [filename for filename in filenames if not re.search(pattern, filename)]
+    return filtered_filenames
 
 def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
     debug and print(f"## Starting generate_mars, mar_config:{mar_config}, model_store_dir:{model_store_dir}\n")
@@ -18,26 +31,20 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
 
         model = models[dl_model.model_name]
 
-        serialized_file_path = None
-        if model.get("serialized_file_local") and model["serialized_file_local"]:
-            serialized_file_path = os.path.join(dl_model.model_path, model["serialized_file_local"])
-            check_if_path_exists(serialized_file_path)
-
         handler = None
         if model.get("handler") and model["handler"]:
             handler = dl_model.handler_path
             check_if_path_exists(handler)
 
-        extra_files = None
-        if model.get("extra_files") and model["extra_files"]:
-            # prefix each extra file with model_path
-            extra_files_list = model["extra_files"].split(',')
-            extra_files=""
-            for file in extra_files_list:
-                abs_file_path = os.path.join(dl_model.model_path, file)
-                check_if_path_exists(abs_file_path)
-                extra_files = extra_files + abs_file_path + ','
-            extra_files = extra_files[:len(extra_files)-1]
+        extra_files_list = os.listdir(dl_model.model_path)
+        hf_api = HfApi()
+        repo_files = hf_api.list_repo_files(repo_id=dl_model.repo_id, token=dl_model.hf_token)
+        repo_files = filter_files_by_extension(repo_files, FILE_EXTENSIONS_TO_IGNORE)
+        if not compare_lists(extra_files_list, repo_files): #checking if local model files are equal to the repository files
+            print("## Model files do not match HuggingFace repository files")
+            sys.exit(1)
+        extra_files_list = [os.path.join(dl_model.model_path, file) for file in extra_files_list]
+        extra_files = ','.join(extra_files_list)
 
         runtime = None
         if model.get("runtime") and model["runtime"]:
@@ -63,7 +70,6 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
         cmd = model_archiver_command_builder(model["model_name"],
                                              model["version"],
                                              model_file_input,
-                                             serialized_file_path,
                                              handler, extra_files,
                                              runtime, archive_format, 
                                              requirements_file,
@@ -81,16 +87,10 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
             debug and print("## {} creation failed !, error: {}\n".format(model["model_name"], exc))
             sys.exit(1)
 
-        if model.get("serialized_file_remote") and \
-                model["serialized_file_remote"] and \
-                os.path.exists(serialized_file_path):
-            os.remove(serialized_file_path)
-
     os.chdir(cwd)
 
 
-def model_archiver_command_builder(model_name=None, version=None, model_file=None,
-                                   serialized_file=None, handler=None, extra_files=None,
+def model_archiver_command_builder(model_name=None, version=None, model_file=None, handler=None, extra_files=None,
                                    runtime=None, archive_format=None, requirements_file=None,
                                    export_path=None, force=True, debug=False):
     cmd = "torch-model-archiver"
@@ -100,8 +100,6 @@ def model_archiver_command_builder(model_name=None, version=None, model_file=Non
         cmd += f" --version {version}"
     if model_file:
         cmd += f" --model-file {model_file}"
-    if serialized_file:
-        cmd += f" --serialized-file {serialized_file}"
     if handler:
         cmd += f" --handler {handler}"
     if extra_files:
