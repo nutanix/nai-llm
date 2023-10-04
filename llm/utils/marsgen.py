@@ -5,12 +5,16 @@ import subprocess
 from system_utils import check_if_path_exists
 from huggingface_hub import HfApi
 from collections import Counter
+import re
+
+FILE_EXTENSIONS_TO_IGNORE = [".safetensors", ".safetensors.index.json"]
 
 def compare_lists(list1, list2):
     return Counter(list1)==Counter(list2)
 
 def filter_files_by_extension(filenames, extensions_to_remove):
-    filtered_filenames = [filename for filename in filenames if not any(filename.endswith(ext) for ext in extensions_to_remove)]
+    pattern = '|'.join([re.escape(suffix) + '$' for suffix in extensions_to_remove]) # using extensions to generate a regex pattern
+    filtered_filenames = [filename for filename in filenames if not re.search(pattern, filename)]
     return filtered_filenames
 
 def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
@@ -35,15 +39,12 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
         extra_files_list = os.listdir(dl_model.model_path)
         hf_api = HfApi()
         repo_files = hf_api.list_repo_files(repo_id=dl_model.repo_id, token=dl_model.hf_token)
-        repo_files = filter_files_by_extension(repo_files, [".safetensors", ".safetensors.index.json"])
+        repo_files = filter_files_by_extension(repo_files, FILE_EXTENSIONS_TO_IGNORE)
         if not compare_lists(extra_files_list, repo_files): #checking if local model files are equal to the repository files
             print("## Model files do not match HuggingFace repository files")
             sys.exit(1)
-        extra_files=""
-        for file in extra_files_list:
-            abs_file_path = os.path.join(dl_model.model_path, file)
-            extra_files = extra_files + abs_file_path + ','
-        extra_files = extra_files[:len(extra_files)-1]
+        extra_files_list = [os.path.join(dl_model.model_path, file) for file in extra_files_list]
+        extra_files = ','.join(extra_files_list)
 
         runtime = None
         if model.get("runtime") and model["runtime"]:

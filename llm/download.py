@@ -7,6 +7,9 @@ import utils.inference_utils
 import utils.marsgen as mg
 from utils.system_utils import check_if_path_exists, check_if_folder_empty
 
+def get_ignore_pattern_list(extension_list):
+    return ["*" + pattern for pattern in extension_list]
+
 class DownloadDataModel(object):
     model_name = str()
     model_path = str()
@@ -56,7 +59,7 @@ def run_download(dl_model):
                       local_dir=dl_model.model_path,
                       local_dir_use_symlinks=False,
                       token=dl_model.hf_token,
-                      ignore_patterns=["*.safetensors", "*.safetensors.index.json"])
+                      ignore_patterns=get_ignore_pattern_list(mg.FILE_EXTENSIONS_TO_IGNORE))
     print("## Successfully downloaded model_files\n")
     return dl_model
 
