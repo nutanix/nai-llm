@@ -4,9 +4,14 @@ import sys
 import subprocess
 from system_utils import check_if_path_exists
 from huggingface_hub import HfApi
+from collections import Counter
 
-def is_subset(list1, list2):
-    return all(item in list2 for item in list1)
+def compare_lists(list1, list2):
+    return Counter(list1)==Counter(list2)
+
+def filter_files_by_extension(filenames, extensions_to_remove):
+    filtered_filenames = [filename for filename in filenames if not any(filename.endswith(ext) for ext in extensions_to_remove)]
+    return filtered_filenames
 
 def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
     debug and print(f"## Starting generate_mars, mar_config:{mar_config}, model_store_dir:{model_store_dir}\n")
@@ -30,7 +35,8 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
         extra_files_list = os.listdir(dl_model.model_path)
         hf_api = HfApi()
         repo_files = hf_api.list_repo_files(repo_id=dl_model.repo_id, token=dl_model.hf_token)
-        if not is_subset(extra_files_list, repo_files): #checking if local model files are a subset of the repository files
+        repo_files = filter_files_by_extension(repo_files, [".safetensors", ".safetensors.index.json"])
+        if not compare_lists(extra_files_list, repo_files): #checking if local model files are equal to the repository files
             print("## Model files do not match HuggingFace repository files")
             sys.exit(1)
         extra_files=""
