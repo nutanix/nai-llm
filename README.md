@@ -35,10 +35,9 @@ Note: We don’t need to install CUDA toolkit separately as it is bundled with P
 #### Download model files and Generate MAR file
 Run the following command for downloading model files and/or generating MAR file: 
 ```
-python3 download_script.py [--no_download] [--no_generate] --model_name <MODEL_NAME> --model_path <MODEL_PATH> --mar_output <MAR_EXPORT_PATH>  --hf_token <Your_HuggingFace_Hub_Token>
+python3 download_script.py [--no_download] --model_name <MODEL_NAME> --model_path <MODEL_PATH> --mar_output <MAR_EXPORT_PATH> --hf_token <Your_HuggingFace_Hub_Token>
 ```
 - no_download:      Set flag to skip downloading the model files
-- no_generate:      Set flag to skip generating MAR file
 - model_name:       Name of model
 - model_path:       Absolute path of model files
 - mar_output:       Absolute path of export of MAR file (.mar)
@@ -57,8 +56,9 @@ python3 llm/download.py --model_name falcon_7b --model_path /home/ubuntu/models/
 ```
 Download Llama2-7B model files(26 GB) and generate model archive(9.66 GB) for it:
 ```
-python3 llm/download.py --model_name llama2_7b --model_path /home/ubuntu/models/llama2_7b/model_files --mar_output /home/ubuntu/models/llama2_7b/model_store
+python3 llm/download.py --model_name llama2_7b --model_path /home/ubuntu/models/llama2_7b/model_files --mar_output /home/ubuntu/models/llama2_7b/model_store --hf_token <Your_HuggingFace_Hub_Token>
 ```
+
 #### Start Torchserve and run inference
 Run the following command for starting Torchserve and running inference on the given input:
 ```
