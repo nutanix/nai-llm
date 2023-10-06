@@ -129,15 +129,15 @@ Test input file can be found in the data folder. <br />
 
 For MPT-7B model
 ```
-curl http://localhost:8081/models?url=mpt_7b.mar&initial_workers=1&synchronous=true
+curl -X POST http://localhost:8081/models?url=mpt_7b.mar&initial_workers=1&synchronous=true
 ```
 For Falcon-7B model
 ```
-curl http://localhost:8081/models?url=falcon_7b.mar&initial_workers=1&synchronous=true
+curl -X POST http://localhost:8081/models?url=falcon_7b.mar&initial_workers=1&synchronous=true
 ```
 For Llama2-7B model
 ```
-curl http://localhost:8081/models?url=llama2_7b.mar&initial_workers=1&synchronous=true
+curl -X POST http://localhost:8081/models?url=llama2_7b.mar&initial_workers=1&synchronous=true
 ```
 
 #### Edit registered model configuration
