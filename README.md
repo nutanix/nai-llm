@@ -35,12 +35,11 @@ Note: We don’t need to install CUDA toolkit separately as it is bundled with P
 #### Download model files and Generate MAR file
 Run the following command for downloading model files and/or generating MAR file: 
 ```
-python3 download_script.py [--no_download] [--no_generate] --model_name <MODEL_NAME> --model_path <MODEL_PATH> --mar_output <MAR_EXPORT_PATH>  --hf_token <Your_HuggingFace_Hub_Token>
+python3 download.py [--no_download] --model_name <MODEL_NAME> --model_path <MODEL_PATH> --mar_output <MAR_EXPORT_PATH> --hf_token <Your_HuggingFace_Hub_Token>
 ```
 - no_download:      Set flag to skip downloading the model files
-- no_generate:      Set flag to skip generating MAR file
 - model_name:       Name of model
-- model_path:       Absolute path of model files
+- model_path:       Absolute path of model files (should be empty if downloading)
 - mar_output:       Absolute path of export of MAR file (.mar)
 - hf_token:         Your HuggingFace token. Needed to download LLAMA(2) models.
 
@@ -57,8 +56,9 @@ python3 llm/download.py --model_name falcon_7b --model_path /home/ubuntu/models/
 ```
 Download Llama2-7B model files(26 GB) and generate model archive(9.66 GB) for it:
 ```
-python3 llm/download.py --model_name llama2_7b --model_path /home/ubuntu/models/llama2_7b/model_files --mar_output /home/ubuntu/models/llama2_7b/model_store
+python3 llm/download.py --model_name llama2_7b --model_path /home/ubuntu/models/llama2_7b/model_files --mar_output /home/ubuntu/models/llama2_7b/model_store --hf_token <Your_HuggingFace_Hub_Token>
 ```
+
 #### Start Torchserve and run inference
 Run the following command for starting Torchserve and running inference on the given input:
 ```
@@ -89,7 +89,8 @@ bash llm/run.sh -n llama2_7b -d data/summarize -a /home/ubuntu/models/llama2_7b/
 ```
 
 #### Describe registered model
-GET /models/{model_name}
+curl http://{inference_server_endpoint}:{management_port}/models/{model_name} <br />
+
 For MPT-7B model
 ```
 curl http://localhost:8081/models/mpt_7b
@@ -104,8 +105,10 @@ curl http://localhost:8081/models/llama2_7b
 ```
 
 #### Inference Check
-curl http://{inference_endpoint}/predictions/{model_name} -T {input_file}
-Test input file can be found in the data folder.
+curl http://{inference_server_endpoint}:{inference_port}/predictions/{model_name} -T {input_file} <br />
+
+Test input file can be found in the data folder. <br />
+
 For MPT-7B model
 ```
 curl http://localhost:8080/predictions/mpt_7b -T data/qa/sample_test1.txt
@@ -118,8 +121,28 @@ For Llama2-7B model
 ```
 curl http://localhost:8080/predictions/llama2_7b -T data/translate/sample_test1.txt
 ```
+#### Register additional models
+For loading multiple unique models, make sure that the MAR files (.mar) for the concerned models are stored in the same directory <br />
+
+curl -X POST "http://{inference_server_endpoint}:{management_port}/models?url={model_name}.mar&initial_workers=1&synchronous=true"
+Test input file can be found in the data folder. <br />
+
+For MPT-7B model
+```
+curl -X POST http://localhost:8081/models?url=mpt_7b.mar&initial_workers=1&synchronous=true
+```
+For Falcon-7B model
+```
+curl -X POST http://localhost:8081/models?url=falcon_7b.mar&initial_workers=1&synchronous=true
+```
+For Llama2-7B model
+```
+curl -X POST http://localhost:8081/models?url=llama2_7b.mar&initial_workers=1&synchronous=true
+```
+
 #### Edit registered model configuration
-curl -v -X PUT "http://{inference_endpoint}:{management_port}/models/{model_name}?min_workers={number}&max_workers={number}&batch_size={number}&max_batch_delay={delay_in_ms}"
+curl -v -X PUT "http://{inference_server_endpoint}:{management_port}/models/{model_name}?min_workers={number}&max_workers={number}&batch_size={number}&max_batch_delay={delay_in_ms}"
+
 For MPT-7B model
 ```
 curl -v -X PUT "http://localhost:8081/models/mpt_7b?min_worker=3&max_worker=6"
@@ -133,7 +156,8 @@ For Llama2-7B model
 curl -v -X PUT "http://localhost:8081/models/llama2_7b?min_worker=3&max_worker=6"
 ```
 #### Unregister a model
-DELETE /models/{model_name}/{version}
+curl -X DELETE "http://{inference_server_endpoint}:{management_port}/models/{model_name}/{version}"
+
 For MPT-7B model
 ```
 curl -X DELETE http://localhost:8081/models/mpt_7b/1.0
