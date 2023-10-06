@@ -35,7 +35,7 @@ Note: We don’t need to install CUDA toolkit separately as it is bundled with P
 #### Download model files and Generate MAR file
 Run the following command for downloading model files and/or generating MAR file: 
 ```
-python3 download_script.py [--no_download] --model_name <MODEL_NAME> --model_path <MODEL_PATH> --mar_output <MAR_EXPORT_PATH> --hf_token <Your_HuggingFace_Hub_Token>
+python3 download.py [--no_download] --model_name <MODEL_NAME> --model_path <MODEL_PATH> --mar_output <MAR_EXPORT_PATH> --hf_token <Your_HuggingFace_Hub_Token>
 ```
 - no_download:      Set flag to skip downloading the model files
 - model_name:       Name of model
