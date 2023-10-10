@@ -52,17 +52,5 @@
             "response_timeout" : 2000
         },
         "gpu_type": ["A100-PCIE-40GB","A100-PCIE-80GB"]
-    },
-    "phi": {
-        "model_name": "phi",
-        "repo_version": "b6a7e2fe15c21f5847279f23e280cc5a0e7049ef",
-        "handler": "handler.py",
-        "repo_id": "microsoft/phi-1_5",
-        "registration_params":{
-            "batch_size" : 1,
-            "max_batch_delay" : 2000,
-            "response_timeout" : 2000
-        },
-        "gpu_type": ["A100-PCIE-40GB","A100-PCIE-80GB"]
     }
 }

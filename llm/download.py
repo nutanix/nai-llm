@@ -172,7 +172,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_name', type=str, default="", required=True,
                         metavar='mn', help='name of the model')
     parser.add_argument('--repo_version', type=str, default="",
-                        metavar='rv', help='commit ID of the HuggingFace repository')
+                        metavar='rv', help='commit ID of the model HuggingFace repository')
     parser.add_argument('--no_download', action='store_false',
                         help='flag to not download')
     parser.add_argument('--model_path', type=str, default="", required=True,
