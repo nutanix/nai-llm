@@ -22,6 +22,9 @@ def rm_dir(path):
         print(f"Deleting directory : {path}")
         shutil.rmtree(path)
 
+def mv_file(src, dst):
+    shutil.move(src, dst)
+
 def load_item_from_json(key, item):
     if key:
         dirpath = os.path.dirname(__file__)

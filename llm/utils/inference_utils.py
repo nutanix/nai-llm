@@ -104,11 +104,11 @@ def unregister_model(model_name):
         sys.exit(1)
 
 
-def validate_inference_model(models_to_validate, input_mar, model_name, debug):
+def validate_inference_model(models_to_validate, debug):
     for model in models_to_validate:
         model_name = model["name"]
         model_inputs = model["inputs"]
-
+        
         execute_inference_on_inputs(model_inputs, model_name)
 
         debug and os.system(f"curl http://localhost:8081/models/{model_name}")
@@ -117,16 +117,6 @@ def validate_inference_model(models_to_validate, input_mar, model_name, debug):
 
 def get_inference_internal(data_model, debug):
     dm = data_model
-    inputs = get_inputs_from_folder(dm.input_path)
-    inference_model = {
-        "name": dm.model_name,
-        "inputs": inputs,
-    }
-
-    models_to_validate = [
-        inference_model
-    ]
-
     set_compute_setting(dm.gpus)
 
     start_ts_server(ts_model_store=dm.ts_model_store,
@@ -137,8 +127,20 @@ def get_inference_internal(data_model, debug):
                         debug=debug)
     ts_health_check()
     register_model(dm.model_name, dm.mar_filepath, dm.gpus)
-    if inputs:
-        validate_inference_model(models_to_validate, dm.mar_filepath, dm.model_name, debug)
+
+    if dm.input_path:
+        inputs = get_inputs_from_folder(dm.input_path)
+        inference_model = {
+            "name": dm.model_name,
+            "inputs": inputs,
+        }
+
+        models_to_validate = [
+            inference_model
+        ]
+
+        if inputs:
+            validate_inference_model(models_to_validate, debug)
 
 
 def get_inference_with_mar(data_model, debug=False):

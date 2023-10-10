@@ -3,19 +3,7 @@ import os
 import sys
 import subprocess
 from system_utils import check_if_path_exists
-from huggingface_hub import HfApi
-from collections import Counter
-import re
 
-FILE_EXTENSIONS_TO_IGNORE = [".safetensors", ".safetensors.index.json"]
-
-def compare_lists(list1, list2):
-    return Counter(list1)==Counter(list2)
-
-def filter_files_by_extension(filenames, extensions_to_remove):
-    pattern = '|'.join([re.escape(suffix) + '$' for suffix in extensions_to_remove]) # using extensions to generate a regex pattern
-    filtered_filenames = [filename for filename in filenames if not re.search(pattern, filename)]
-    return filtered_filenames
 
 def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
     debug and print(f"## Starting generate_mars, mar_config:{mar_config}, model_store_dir:{model_store_dir}\n")
@@ -37,12 +25,6 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
             check_if_path_exists(handler)
 
         extra_files_list = os.listdir(dl_model.model_path)
-        hf_api = HfApi()
-        repo_files = hf_api.list_repo_files(repo_id=dl_model.repo_id, token=dl_model.hf_token)
-        repo_files = filter_files_by_extension(repo_files, FILE_EXTENSIONS_TO_IGNORE)
-        if not compare_lists(extra_files_list, repo_files): #checking if local model files are equal to the repository files
-            print("## Model files do not match HuggingFace repository files")
-            sys.exit(1)
         extra_files_list = [os.path.join(dl_model.model_path, file) for file in extra_files_list]
         extra_files = ','.join(extra_files_list)
 
@@ -67,8 +49,8 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
         if model.get("model_file") and model["model_file"]:
             model_file_input = model["model_file"]
 
-        cmd = model_archiver_command_builder(model["model_name"],
-                                             model["version"],
+        cmd = model_archiver_command_builder(dl_model.model_name,
+                                             dl_model.repo_version,
                                              model_file_input,
                                              handler, extra_files,
                                              runtime, archive_format, 
@@ -81,7 +63,7 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
         try:
             subprocess.check_call(cmd, shell=True)
             marfile = "{}.mar".format(model["model_name"])
-            print(f"## {marfile} is generated.\n")
+            debug and print(f"## {marfile} is generated.\n")
         except subprocess.CalledProcessError as exc:
             print("## Creation failed !\n")
             debug and print("## {} creation failed !, error: {}\n".format(model["model_name"], exc))

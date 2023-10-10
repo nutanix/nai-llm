@@ -59,7 +59,7 @@ def check_if_path_exists(filepath, param = ""):
         print(f"Filepath does not exist {param} - {filepath}")
         sys.exit(1)
 
-def create_folder_if_not_exits(path):
+def create_folder_if_not_exists(path):
     os.makedirs(path, exist_ok=True)
     print(f"The new directory is created! - {path}")
 
@@ -67,8 +67,8 @@ def check_if_folder_empty(path):
     dir_items = os.listdir(path)
     return True if len(dir_items)==0 else False
 
-def check_file_extension(file_path, extension):
-    return file_path.endswith(extension)
+# def check_file_extension(file_path, extension):
+#     return file_path.endswith(extension)
 
 def remove_suffix_if_starts_with(string, suffix):
     if string.startswith(suffix):
