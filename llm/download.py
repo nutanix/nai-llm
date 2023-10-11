@@ -187,7 +187,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_path', type=str, default="", required=True,
                         metavar='mp', help='Absolute path of model files (should be empty if downloading)')
     parser.add_argument('--mar_output', type=str, default="", required=True,
-                        metavar='mx', help='Absolute path of export of MAR file (.mar)')
+                        metavar='mx', help='Absolute path of exported MAR file (.mar)')
     parser.add_argument('--handler_path', type=str, default="",
                         metavar='hp', help='absolute path of handler')
     parser.add_argument('--hf_token', type=str, default=None,
