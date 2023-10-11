@@ -121,7 +121,7 @@ def get_params_for_registration(model_name):
 def register_model(model_name, marfile, gpus, 
                    protocol="http", host="localhost",
                    port="8081"):
-    print(f"\n## Registering {marfile} model, this might take a while \n")
+    print(f"\n## Registering {model_name} model, this might take a while \n")
     initial_workers, batch_size, max_batch_delay, response_timeout = get_params_for_registration(model_name)
     if(initial_workers is None): #setting the default value of workers to number of gpus
         initial_workers = gpus

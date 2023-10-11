@@ -12,7 +12,6 @@ import re
 
 FILE_EXTENSIONS_TO_IGNORE = [".safetensors", ".safetensors.index.json"]
 
-
 MODEL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'model_config.json')
 
 class DownloadDataModel(object):
@@ -37,7 +36,7 @@ def set_values(args):
     dl_model.handler_path = args.handler_path
     dl_model.hf_token = args.hf_token
     dl_model.debug = args.debug
-    get_repo_id_and_version(dl_model)
+    read_config_for_download(dl_model)
     return dl_model
 
 
@@ -59,7 +58,7 @@ def filter_files_by_extension(filenames, extensions_to_remove):
 def check_if_mar_exists(dl_model):
     check_path = os.path.join(dl_model.mar_output, f"{dl_model.model_name}_{dl_model.repo_version}.mar")
     if os.path.exists(check_path):
-        print(f"## MAR file of model {dl_model.model_name} and version {dl_model.repo_version} is already present!\n")
+        print(f"## Skipping MAR file generation as it already exists\nModel name: {dl_model.model_name}\nRepository Version: {dl_model.repo_version}\n")
         sys.exit(1)
 
 
@@ -88,23 +87,30 @@ def move_mar(dl_model, tmp_dir):
     mv_file(src, dst)
 
 
-def get_repo_id_and_version(dl_model):
-    # read and validate the repo_id and repo_version
+def read_config_for_download(dl_model):
+    # Read and validate the repo_id and repo_version
     check_if_path_exists(MODEL_CONFIG_PATH)
     with open(MODEL_CONFIG_PATH) as f:
         models = json.loads(f.read())
         if dl_model.model_name in models:
             try:
                 dl_model.repo_id = models[dl_model.model_name]['repo_id']
-                if dl_model.repo_version == "":
+                if not dl_model.repo_version:
                     dl_model.repo_version = models[dl_model.model_name]['repo_version']
+
                 # Make sure there is HF hub token for LLAMA(2)
                 if dl_model.repo_id.startswith("meta-llama") and dl_model.hf_token is None:
                     print(f"HuggingFace Hub token is required for llama download. Please specify it using --hf_token=<your token>. Refer https://huggingface.co/docs/hub/security-tokens")
                     sys.exit(1)
-                
+
+                # Validate downloaded files
                 hf_api = HfApi()
                 hf_api.list_repo_commits(repo_id=dl_model.repo_id, revision=dl_model.repo_version, token=dl_model.hf_token)
+
+                # Read handler file name
+                if not dl_model.handler_path:
+                    dl_model.handler_path = os.path.join(os.path.dirname(__file__),
+                                                     models[dl_model.model_name]["handler"])
             except Exception:
                 print(f"## Error: Please check either repo_id or repo_version is not correct\n")
                 sys.exit(1)
@@ -134,14 +140,8 @@ def create_mar(dl_model):
     if not check_if_model_files_exist(dl_model):
         print("## Model files do not match HuggingFace repository files")
         sys.exit(1)
-    if dl_model.handler_path == "":
-        with open(MODEL_CONFIG_PATH) as f:
-            models = json.loads(f.read())
-            if dl_model.model_name in models:
-                dl_model.handler_path = os.path.join(os.path.dirname(__file__),
-                                                     models[dl_model.model_name]["handler"])
 
-    # creates a temporary directory with the name "tmp_<model-name>_<repo-version>" inside model_store
+    # Creates a temporary directory with the name "tmp_<model-name>_<repo-version>" inside model_store
     tmp_dir = create_tmp_model_store(dl_model.mar_output, dl_model.model_name, dl_model.repo_version)
 
     mg.generate_mars(dl_model=dl_model, 
@@ -149,11 +149,11 @@ def create_mar(dl_model):
                      model_store_dir=tmp_dir,
                      debug=dl_model.debug)
 
-    # move MAR file to model_store
+    # Move MAR file to model_store
     move_mar(dl_model, tmp_dir)
-    # delete temporary folder
+    # Delete temporary folder
     rm_dir(tmp_dir)
-    print(f"\n## mar file for {dl_model.model_name} with version {dl_model.repo_version} is generated.\n")
+    print(f"\n## Mar file for {dl_model.model_name} with version {dl_model.repo_version} is generated!\n")
 
 
 def run_script(args):
@@ -170,15 +170,15 @@ def run_script(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='download script')
     parser.add_argument('--model_name', type=str, default="", required=True,
-                        metavar='mn', help='name of the model')
+                        metavar='mn', help='Name of model')
     parser.add_argument('--repo_version', type=str, default="",
-                        metavar='rv', help='commit ID of the model HuggingFace repository')
+                        metavar='rv', help='Commit ID of models repo from HuggingFace repository')
     parser.add_argument('--no_download', action='store_false',
-                        help='flag to not download')
+                        help='Set flag to skip downloading the model files')
     parser.add_argument('--model_path', type=str, default="", required=True,
-                        metavar='mp', help='absolute path to model folder')
+                        metavar='mp', help='Absolute path of model files (should be empty if downloading)')
     parser.add_argument('--mar_output', type=str, default="", required=True,
-                        metavar='mx', help='absolute path of output mar')
+                        metavar='mx', help='Absolute path of export of MAR file (.mar)')
     parser.add_argument('--handler_path', type=str, default="",
                         metavar='hp', help='absolute path of handler')
     parser.add_argument('--hf_token', type=str, default=None,

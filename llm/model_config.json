@@ -1,9 +1,8 @@
 {
     "mpt_7b": {
-        "model_name": "mpt_7b",
-        "repo_version": "0b57768f52b7775563f7cc78c4724e407b39593b",
         "handler": "handler.py",
         "repo_id": "mosaicml/mpt-7b",
+        "repo_version": "0b57768f52b7775563f7cc78c4724e407b39593b",
         "model_params":{
             "temperature" : 0.7,
             "repetition_penalty" : 1.75,
@@ -18,10 +17,9 @@
         "gpu_type": ["A100-PCIE-40GB","A100-PCIE-80GB"]
     },
     "falcon_7b": {
-        "model_name": "falcon_7b",
-        "repo_version": "898df1396f35e447d5fe44e0a3ccaaaa69f30d36",
         "handler": "handler.py",
         "repo_id": "tiiuae/falcon-7b",
+        "repo_version": "898df1396f35e447d5fe44e0a3ccaaaa69f30d36",
         "model_params":{
             "temperature" : 0.5,
             "repetition_penalty" : 2.0,
@@ -36,10 +34,9 @@
         "gpu_type": ["A100-PCIE-40GB","A100-PCIE-80GB"]
     },
     "llama2_7b": {
-        "model_name": "llama2_7b",
-        "repo_version": "6fdf2e60f86ff2481f2241aaee459f85b5b0bbb9",
         "handler": "handler.py",
         "repo_id": "meta-llama/Llama-2-7b-hf",
+        "repo_version": "6fdf2e60f86ff2481f2241aaee459f85b5b0bbb9",
         "model_params":{
             "temperature" : 0.6,
             "repetition_penalty" : 1.75,

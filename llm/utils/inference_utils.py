@@ -73,8 +73,6 @@ def start_ts_server(ts_model_store, ts_log_file, ts_log_config, ts_config_file, 
 
 def execute_inference_on_inputs(model_inputs, model_name):
     for input in model_inputs:
-        print(input)
-        print(model_name)
         response = ts.run_inference(model_name, input)
         if response and response.status_code == 200:
             print(f"## Successfully ran inference on {model_name} model. \n\n Output - {response.text}\n\n")
@@ -87,7 +85,7 @@ def execute_inference_on_inputs(model_inputs, model_name):
 def register_model(model_name, input_mar, gpus):
     response = ts.register_model(model_name, input_mar, gpus)
     if response and response.status_code == 200:
-        print(f"## Successfully registered {input_mar} model with torchserve \n")
+        print(f"## Successfully registered {model_name} model with torchserve \n")
     else:
         print("## Failed to register model with torchserve \n")
         error_msg_print()
@@ -146,15 +144,6 @@ def get_inference_internal(data_model, debug):
 def get_inference_with_mar(data_model, debug=False):
     try:
         prepare_settings(data_model)
-
-        # copy mar file to model_store
-        mar_dest = os.path.join(data_model.ts_model_store, data_model.mar_filepath.split('/')[-1])
-        mar_name = data_model.mar_filepath.split('/')[-1]
-        print(mar_dest)
-        print(mar_name)
-        if data_model.mar_filepath != mar_dest:
-            subprocess.check_output(f'cp {data_model.mar_filepath} {mar_dest}', shell=True)
-
         get_inference_internal(data_model, debug=debug)
 
     except Exception as e:

@@ -10,64 +10,39 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
     cwd = os.getcwd()
     os.chdir(os.path.dirname(mar_config))
 
-    with open(mar_config) as f:
-        models = json.loads(f.read())
-        if dl_model.model_name not in models:
-            print("## Please check your model name, it should be one of the following : ")
-            print(list(models.keys()))
-            sys.exit(1)
+    handler = dl_model.handler_path
+    check_if_path_exists(handler)
 
-        model = models[dl_model.model_name]
+    extra_files_list = os.listdir(dl_model.model_path)
+    extra_files_list = [os.path.join(dl_model.model_path, file) for file in extra_files_list]
+    extra_files = ','.join(extra_files_list)
 
-        handler = None
-        if model.get("handler") and model["handler"]:
-            handler = dl_model.handler_path
-            check_if_path_exists(handler)
+    export_path = model_store_dir
+    check_if_path_exists(export_path)
 
-        extra_files_list = os.listdir(dl_model.model_path)
-        extra_files_list = [os.path.join(dl_model.model_path, file) for file in extra_files_list]
-        extra_files = ','.join(extra_files_list)
+    runtime = None
+    archive_format = None
+    requirements_file = None
+    model_file_input = None
 
-        runtime = None
-        if model.get("runtime") and model["runtime"]:
-            runtime = model["runtime"]
+    cmd = model_archiver_command_builder(dl_model.model_name,
+                                            dl_model.repo_version,
+                                            model_file_input,
+                                            handler, extra_files,
+                                            runtime, archive_format, 
+                                            requirements_file,
+                                            export_path,
+                                            debug=debug)
 
-        archive_format = None
-        if model.get("archive_format") and model["archive_format"]:
-            archive_format = model["archive_format"]
+    debug and print(f"## In directory: {os.getcwd()} | Executing command: {cmd}\n")
 
-        requirements_file = None
-        if model.get("requirements_file") and model["requirements_file"]:
-            requirements_file = model["requirements_file"]
-
-        export_path = model_store_dir
-        if model.get("export_path") and model["export_path"]:
-            export_path = model["export_path"]
-            check_if_path_exists(export_path)
-
-        model_file_input = None
-        if model.get("model_file") and model["model_file"]:
-            model_file_input = model["model_file"]
-
-        cmd = model_archiver_command_builder(dl_model.model_name,
-                                             dl_model.repo_version,
-                                             model_file_input,
-                                             handler, extra_files,
-                                             runtime, archive_format, 
-                                             requirements_file,
-                                             export_path,
-                                             debug=debug)
-
-        debug and print(f"## In directory: {os.getcwd()} | Executing command: {cmd}\n")
-
-        try:
-            subprocess.check_call(cmd, shell=True)
-            marfile = "{}.mar".format(model["model_name"])
-            debug and print(f"## {marfile} is generated.\n")
-        except subprocess.CalledProcessError as exc:
-            print("## Creation failed !\n")
-            debug and print("## {} creation failed !, error: {}\n".format(model["model_name"], exc))
-            sys.exit(1)
+    try:
+        subprocess.check_call(cmd, shell=True)
+        debug and print(f"## Model {dl_model.model_name} with version {dl_model.repo_version} is generated.\n")
+    except subprocess.CalledProcessError as exc:
+        print("## Creation failed !\n")
+        debug and print("## {} creation failed !, error: {}\n".format(dl_model.model_name, exc))
+        sys.exit(1)
 
     os.chdir(cwd)
 

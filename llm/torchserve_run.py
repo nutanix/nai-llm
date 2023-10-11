@@ -9,12 +9,34 @@ from utils.system_utils import check_if_path_exists
 from utils.system_utils import create_folder_if_not_exists, remove_suffix_if_starts_with
 import utils.inference_data_model as dm
 
-
 MODEL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'model_config.json')
+
+def read_config_for_inference(args):
+    with open(MODEL_CONFIG_PATH) as f:
+        models = json.loads(f.read())
+        if args.model_name not in models:
+            print("## Please check your model name, it should be one of the following : ")
+            print(list(models.keys()))
+            error_msg_print()
+            sys.exit(1)
+
+        if args.gpus > 0:
+            gpu_type_list = models[args.model_name]["gpu_type"]
+            gpu_type = remove_suffix_if_starts_with(args.gpu_type, "NVIDIA")
+            if gpu_type not in gpu_type_list:
+                print("WARNING: This GPU Type is not validated, the validated GPU Types are:")
+                for gpu in gpu_type_list:
+                    print(gpu)
+
+        if models[args.model_name]["repo_version"] and not args.repo_version:
+            args.repo_version = models[args.model_name]["repo_version"]
+    return args
+
 
 def set_mar_filepath(model_store, model_name, repo_version):
     mar_name = f"{model_name}_{repo_version}.mar"
     return os.path.join(model_store, mar_name)
+
 
 def run_inference_with_mar(args):
     check_if_path_exists(args.mar)
@@ -28,18 +50,6 @@ def run_inference_with_mar(args):
 
 def run_inference(args):
     check_if_path_exists(args.model_store, "Model Store")
-    with open(MODEL_CONFIG_PATH) as f:
-        config = json.loads(f.read())
-        if args.gpus > 0:
-            gpu_type_list = config[args.model_name]["gpu_type"]
-            gpu_type = remove_suffix_if_starts_with(args.gpu_type, "NVIDIA")
-            if gpu_type not in gpu_type_list:
-                print("WARNING: This GPU Type is not validated, the validated GPU Types are:")
-                for gpu in gpu_type_list:
-                    print(gpu)
-
-        if config[args.model_name]["repo_version"] and not args.repo_version:
-            args.repo_version = config[args.model_name]["repo_version"]
 
     args.mar = set_mar_filepath(args.model_store, args.model_name, args.repo_version)
     check_if_path_exists(args.mar, "MAR file")
@@ -55,24 +65,14 @@ def torchserve_run(args):
     try:
         # Stop the server if anything is running
         cleanup(args.gen_folder_name, True, False)
-        # data folder exists check
-        if args.data:
-            check_if_path_exists(args.data)
 
-        model_name=args.model_name
         check_if_path_exists(MODEL_CONFIG_PATH, "Model Config")
-        with open(MODEL_CONFIG_PATH) as f:
-            models = json.loads(f.read())
-            if model_name not in models:
-                print("## Please check your model name, it should be one of the following : ")
-                print(list(models.keys()))
-                error_msg_print()
-                sys.exit(1)
+        args = read_config_for_inference(args)
         
         run_inference(args)
 
         print("\n**************************************")
-        print("*\n*\n*  Inference Run Successful  ") ## change to "ready for inferencing"? because data not required
+        print("*\n*\n*  Ready For Inferencing  ")
         print("*\n*\n**************************************")
 
     finally:

@@ -67,9 +67,6 @@ def check_if_folder_empty(path):
     dir_items = os.listdir(path)
     return True if len(dir_items)==0 else False
 
-# def check_file_extension(file_path, extension):
-#     return file_path.endswith(extension)
-
 def remove_suffix_if_starts_with(string, suffix):
     if string.startswith(suffix):
         return string[len(suffix):]  

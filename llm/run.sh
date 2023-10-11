@@ -5,12 +5,12 @@ wdir=$(dirname "$SCRIPT")
 helpFunction()
 {
    echo ""
-   echo "Usage: $0 -n <MODEL_NAME> -d <INPUT_DATA_ABSOLUTE_PATH> -g <NUM_OF_GPUS> -a <ABOSULTE_PATH_MODEL_ARCHIVE_FILE> [OPTIONAL -k -v <REPO_VERSION>]"
+   echo "Usage: $0 -n <MODEL_NAME> -a <MAR_EXPORT_PATH> -g <NUM_GPUS> [OPTIONAL -d <INPUT_PATH> -v <REPO_VERSION>]"
    echo -e "\t-n Name of the Model"
    echo -e "\t-v HuggingFace repository version (optional)"
-   echo -e "\t-d Absolute path to the inputs folder that contains data to be predicted."
-   echo -e "\t-g Number of gpus to be used to execute. Set 0 to use cpu"
-   echo -e "\t-a Absolute path to the model store folder"
+   echo -e "\t-d Absolute path of input data folder (optional)"
+   echo -e "\t-g Number of gpus to be used to execute (Set 0 to use cpu)"
+   echo -e "\t-a Absolute path to the Model Store directory"
    exit 1 # Exit script after printing help
 }
 
@@ -21,7 +21,7 @@ do
         v ) repo_version="$OPTARG" ;;
         d ) data="$OPTARG" ;;
         g ) gpus="$OPTARG" ;;
-        a ) mar_store_path="$OPTARG" ;;
+        a ) model_store="$OPTARG" ;;
         ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
    esac
 done
@@ -46,8 +46,8 @@ function create_execution_cmd()
         cmd+=" --repo_version $repo_version"
     fi
 
-    if [ ! -z $mar_store_path ] ; then
-        cmd+=" --model_store $mar_store_path"
+    if [ ! -z $model_store ] ; then
+        cmd+=" --model_store $model_store"
     else
         echo "Model store path not provided"
         helpFunction
@@ -83,7 +83,9 @@ function create_execution_cmd()
 
 function inference_exec_vm(){
     echo "Running the Inference script";
-    echo "$cmd"
+    echo "";
+    echo "$cmd";
+    echo "";
     $cmd
 }
 
