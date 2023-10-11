@@ -20,5 +20,4 @@ def set_data_model(gpus, gen_folder, data="", model_name="", mar_filepath="", re
     data_model.gen_folder = gen_folder
     data_model.mar_filepath = mar_filepath
     data_model.repo_version = repo_version
-
     return data_model

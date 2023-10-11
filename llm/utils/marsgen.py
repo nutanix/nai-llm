@@ -1,8 +1,14 @@
-import json
 import os
 import sys
 import subprocess
 from system_utils import check_if_path_exists
+
+# MAR_NAME_LEN - Number of characters to include from repo_version in MAR name
+MAR_NAME_LEN = 7
+
+def get_mar_name(model_name, repo_version):
+    mar_name = f"{model_name}_{repo_version[0:MAR_NAME_LEN]}"
+    return mar_name
 
 
 def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
@@ -40,9 +46,11 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
     os.chdir(cwd)
 
 
-def model_archiver_command_builder(model_name=None, version=None, model_file=None, handler=None, extra_files=None,
-                                   runtime=None, archive_format=None, requirements_file=None,
-                                   export_path=None, force=True, debug=False):
+def model_archiver_command_builder(model_name=None, version=None, model_file=None,
+                                   handler=None, extra_files=None,
+                                   runtime=None, archive_format=None,
+                                   requirements_file=None, export_path=None,
+                                   force=True, debug=False):
     cmd = "torch-model-archiver"
     if model_name:
         cmd += f" --model-name {model_name}"
@@ -53,7 +61,7 @@ def model_archiver_command_builder(model_name=None, version=None, model_file=Non
     if handler:
         cmd += f" --handler {handler}"
     if extra_files:
-        cmd += " --extra-files \"{0}\"".format(extra_files)
+        cmd += f" --extra-files \"{extra_files}\""
     if runtime:
         cmd += f" --runtime {runtime}"
     if archive_format:
@@ -64,6 +72,6 @@ def model_archiver_command_builder(model_name=None, version=None, model_file=Non
         cmd += f" --export-path {export_path}"
     if force:
         cmd += " --force"
-    print(f"\n## Generating mar file, will take few mins.\n")
+    print("\n## Generating mar file, will take few mins.\n")
     debug and print(cmd)
     return cmd

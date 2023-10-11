@@ -157,20 +157,8 @@ curl -v -X PUT "http://localhost:8081/models/llama2_7b?min_worker=3&max_worker=6
 ```
 
 #### Unregister a model
-curl -X DELETE "http://{inference_server_endpoint}:{management_port}/models/{model_name}/{version}"
+curl -X DELETE "http://{inference_server_endpoint}:{management_port}/models/{model_name}/{repo_version}"
 
-For MPT-7B model
-```
-curl -X DELETE "http://localhost:8081/models/mpt_7b/0b57768f52b7775563f7cc78c4724e407b39593b"
-```
-For Falcon-7B model
-```
-curl -X DELETE "http://localhost:8081/models/falcon_7b/898df1396f35e447d5fe44e0a3ccaaaa69f30d36"
-```
-For Llama2-7B model
-```
-curl -X DELETE "http://localhost:8081/models/llama2_7b/6fdf2e60f86ff2481f2241aaee459f85b5b0bbb9"
-```
 #### Stop Torchserve and Cleanup
 If keep alive flag was set in the bash script, then you can run the following command to stop the server and clean up temporary files
 ```
@@ -185,16 +173,3 @@ We provide the capability to download and register various commits of the single
 If multiple versions of the same model are registered, we can set a particular version as the default for inferencing<br />
 
 curl -v -X PUT "http://localhost:8081/models/{model_name}/{repo_version}/set-default"
-
-For MPT-7B model
-```
-curl -v -X PUT "http://localhost:8081/models/mpt_7b/0b57768f52b7775563f7cc78c4724e407b39593b/set-default"
-```
-For Falcon-7B model
-```
-curl -v -X PUT "http://localhost:8081/models/falcon_7b/898df1396f35e447d5fe44e0a3ccaaaa69f30d36/set-default"
-```
-For Llama2-7B model
-```
-curl -v -X PUT "http://localhost:8081/models/llama2_7b/6fdf2e60f86ff2481f2241aaee459f85b5b0bbb9/set-default"
-```

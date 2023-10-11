@@ -1,6 +1,5 @@
 import os
 import sys
-import subprocess
 import traceback
 
 REPO_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)))
@@ -62,20 +61,21 @@ def ts_health_check():
 
 def start_ts_server(ts_model_store, ts_log_file, ts_log_config, ts_config_file, gpus, debug):
     started = ts.start_torchserve(model_store=ts_model_store,
-                                        log_file=ts_log_file, 
-                                        log_config_file=ts_log_config, 
-                                        config_file=ts_config_file, 
+                                        log_file=ts_log_file,
+                                        log_config_file=ts_log_config,
+                                        config_file=ts_config_file,
                                         gpus=gpus,
                                         debug=debug)
     if not started:
         error_msg_print()
         sys.exit(1)
 
+
 def execute_inference_on_inputs(model_inputs, model_name):
     for input in model_inputs:
         response = ts.run_inference(model_name, input)
         if response and response.status_code == 200:
-            print(f"## Successfully ran inference on {model_name} model. \n\n Output - {response.text}\n\n")
+            print(f"## Successfully ran inference on {model_name} model.\n\n Output - {response.text}\n\n")
         else:
             print(f"## Failed to run inference on {model_name} model \n")
             error_msg_print()
@@ -106,7 +106,7 @@ def validate_inference_model(models_to_validate, debug):
     for model in models_to_validate:
         model_name = model["name"]
         model_inputs = model["inputs"]
-        
+
         execute_inference_on_inputs(model_inputs, model_name)
 
         debug and os.system(f"curl http://localhost:8081/models/{model_name}")
@@ -118,8 +118,8 @@ def get_inference_internal(data_model, debug):
     set_compute_setting(dm.gpus)
 
     start_ts_server(ts_model_store=dm.ts_model_store,
-                        ts_log_file=dm.ts_log_file, 
-                        ts_log_config=dm.ts_log_config, 
+                        ts_log_file=dm.ts_log_file,
+                        ts_log_config=dm.ts_log_config,
                         ts_config_file=dm.ts_config_file,
                         gpus=dm.gpus,
                         debug=debug)

@@ -69,6 +69,6 @@ def check_if_folder_empty(path):
 
 def remove_suffix_if_starts_with(string, suffix):
     if string.startswith(suffix):
-        return string[len(suffix):]  
+        return string[len(suffix):]
     else:
-        return string  
+        return string

@@ -8,13 +8,13 @@ from utils import tsutils as ts
 from utils.system_utils import check_if_path_exists
 from utils.system_utils import create_folder_if_not_exists, remove_suffix_if_starts_with
 import utils.inference_data_model as dm
-from download import MAR_NAME_LEN
+from utils.marsgen import get_mar_name
 
 MODEL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'model_config.json')
 
 def read_config_for_inference(args):
-    with open(MODEL_CONFIG_PATH) as f:
-        models = json.loads(f.read())
+    with open(MODEL_CONFIG_PATH) as config:
+        models = json.loads(config.read())
         if args.model_name not in models:
             print("## Please check your model name, it should be one of the following : ")
             print(list(models.keys()))
@@ -35,7 +35,7 @@ def read_config_for_inference(args):
 
 
 def set_mar_filepath(model_store, model_name, repo_version):
-    mar_name = f"{model_name}_{repo_version[0:MAR_NAME_LEN]}.mar"
+    mar_name = f"{get_mar_name(model_name, repo_version)}.mar"
     return os.path.join(model_store, mar_name)
 
 
@@ -57,7 +57,7 @@ def run_inference(args):
 
     create_folder_if_not_exists(os.path.join(os.path.dirname(__file__),
                                'utils', args.gen_folder_name))
-    
+
     ts.set_model_params(args.model_name)
     run_inference_with_mar(args)
 
@@ -69,7 +69,7 @@ def torchserve_run(args):
 
         check_if_path_exists(MODEL_CONFIG_PATH, "Model Config")
         args = read_config_for_inference(args)
-        
+
         run_inference(args)
 
         print("\n**************************************")
