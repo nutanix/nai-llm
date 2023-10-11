@@ -120,8 +120,7 @@ def read_config_for_download(dl_model):
                     dl_model.handler_path = os.path.join(os.path.dirname(__file__),
                                                      models[dl_model.model_name]["handler"])
             except Exception:
-                print("## Error: Please check either repo_id, \
-                      repo_version or HuggingFace ID is not correct\n")
+                print("## Error: Please check either repo_id, repo_version or HuggingFace ID is not correct\n")
                 sys.exit(1)
         else:
             print("## Please check your model name, it should be one of the following : ")
