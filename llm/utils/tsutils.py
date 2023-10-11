@@ -3,7 +3,6 @@ import platform
 import time
 import json
 import requests
-import marsgen as mg
 
 torchserve_command = {
     "Windows": "torchserve.exe",

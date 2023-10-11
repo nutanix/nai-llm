@@ -66,7 +66,7 @@ Run the following command for starting Torchserve and running inference on the g
 bash run.sh -n <MODEL_NAME> -a <MAR_EXPORT_PATH> -g <NUM_GPUS> [OPTIONAL -d <INPUT_PATH> -v <REPO_VERSION>]
 ```
 - n:    Name of model
-- v:    HuggingFace repository version (optional)
+- v:    Commit ID of model's repo from HuggingFace repository (optional, if not provided default set in model_config will be used)
 - d:    Absolute path of input data folder (optional)
 - g:    Number of gpus to be used to execute (Set 0 to use cpu)
 - a:    Absolute path to the Model Store directory

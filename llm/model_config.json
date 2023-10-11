@@ -51,13 +51,12 @@
         "gpu_type": ["A100-PCIE-40GB","A100-PCIE-80GB"]
     },
     "phi-1_5": {
+        "handler": "handler.py",
         "repo_id": "microsoft/phi-1_5",
         "repo_version": "b6a7e2fe15c21f5847279f23e280cc5a0e7049ef",
-        "handler": "handler.py",
-        "requirements_file": "model_requirements.txt",
         "registration_params":{
-            "batch_size" : 16,
-            "max_batch_delay" : 2000,
+            "batch_size" : 1,
+            "max_batch_delay" : 200,
             "response_timeout" : 2000
         },
         "gpu_type": ["A100-PCIE-40GB","A100-PCIE-80GB"]

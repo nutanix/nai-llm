@@ -5,7 +5,6 @@ import sys
 from collections import Counter
 import re
 from huggingface_hub import snapshot_download, HfApi
-import utils.inference_utils
 from utils.marsgen import get_mar_name, generate_mars
 from utils.system_utils import check_if_path_exists, check_if_folder_empty, create_folder_if_not_exists
 from utils.shell_utils import mv_file, rm_dir

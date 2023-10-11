@@ -4,7 +4,7 @@ import sys
 import json
 from utils.inference_utils import get_inference_with_mar, error_msg_print
 from utils.shell_utils import rm_dir
-from utils import tsutils as ts
+import utils.tsutils as ts
 from utils.system_utils import check_if_path_exists
 from utils.system_utils import create_folder_if_not_exists, remove_suffix_if_starts_with
 import utils.inference_data_model as dm
@@ -54,6 +54,9 @@ def run_inference(args):
 
     args.mar = set_mar_filepath(args.model_store, args.model_name, args.repo_version)
     check_if_path_exists(args.mar, "MAR file")
+
+    if args.data:
+        check_if_path_exists(args.data, "Input data folder")
 
     create_folder_if_not_exists(os.path.join(os.path.dirname(__file__),
                                'utils', args.gen_folder_name))
