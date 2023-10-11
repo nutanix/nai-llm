@@ -124,7 +124,7 @@ curl http://localhost:8080/predictions/llama2_7b -T data/translate/sample_test1.
 #### Register additional models
 For loading multiple unique models, make sure that the MAR files (.mar) for the concerned models are stored in the same directory <br />
 
-curl -X POST "http://{inference_server_endpoint}:{management_port}/models?url={model_name}.mar&initial_workers=1&synchronous=true"
+curl -X POST "http://{inference_server_endpoint}:{management_port}/models?url={mar_name}.mar&initial_workers=1&synchronous=true"
 Test input file can be found in the data folder. <br />
 
 For MPT-7B model
@@ -155,23 +155,46 @@ For Llama2-7B model
 ```
 curl -v -X PUT "http://localhost:8081/models/llama2_7b?min_worker=3&max_worker=6"
 ```
+
 #### Unregister a model
 curl -X DELETE "http://{inference_server_endpoint}:{management_port}/models/{model_name}/{version}"
 
 For MPT-7B model
 ```
-curl -X DELETE "http://localhost:8081/models/mpt_7b/1.0"
+curl -X DELETE "http://localhost:8081/models/mpt_7b/0b57768f52b7775563f7cc78c4724e407b39593b"
 ```
 For Falcon-7B model
 ```
-curl -X DELETE "http://localhost:8081/models/falcon_7b/1.0"
+curl -X DELETE "http://localhost:8081/models/falcon_7b/898df1396f35e447d5fe44e0a3ccaaaa69f30d36"
 ```
 For Llama2-7B model
 ```
-curl -X DELETE "http://localhost:8081/models/llama2_7b/1.0"
+curl -X DELETE "http://localhost:8081/models/llama2_7b/6fdf2e60f86ff2481f2241aaee459f85b5b0bbb9"
 ```
 #### Stop Torchserve and Cleanup
 If keep alive flag was set in the bash script, then you can run the following command to stop the server and clean up temporary files
 ```
 python3 llm/utils/cleanup.py
+```
+
+### Model Version Support
+
+We provide the capability to download and register various commits of the single model from HuggingFace. By specifying the commit ID as "repo_version", you can produce MAR files for multiple iterations of the same model and register them simultaneously. To transition between these versions, you can set a default version within Torchserve while it is running.
+
+#### Set Default Model Version
+If multiple versions of the same model are registered, we can set a particular version as the default for inferencing<br />
+
+curl -v -X PUT "http://localhost:8081/models/{model_name}/{repo_version}/set-default"
+
+For MPT-7B model
+```
+curl -v -X PUT "http://localhost:8081/models/mpt_7b/0b57768f52b7775563f7cc78c4724e407b39593b/set-default"
+```
+For Falcon-7B model
+```
+curl -v -X PUT "http://localhost:8081/models/falcon_7b/898df1396f35e447d5fe44e0a3ccaaaa69f30d36/set-default"
+```
+For Llama2-7B model
+```
+curl -v -X PUT "http://localhost:8081/models/llama2_7b/6fdf2e60f86ff2481f2241aaee459f85b5b0bbb9/set-default"
 ```

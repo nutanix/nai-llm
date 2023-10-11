@@ -8,6 +8,7 @@ from utils import tsutils as ts
 from utils.system_utils import check_if_path_exists
 from utils.system_utils import create_folder_if_not_exists, remove_suffix_if_starts_with
 import utils.inference_data_model as dm
+from download import MAR_NAME_LEN
 
 MODEL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'model_config.json')
 
@@ -34,7 +35,7 @@ def read_config_for_inference(args):
 
 
 def set_mar_filepath(model_store, model_name, repo_version):
-    mar_name = f"{model_name}_{repo_version}.mar"
+    mar_name = f"{model_name}_{repo_version[0:MAR_NAME_LEN]}.mar"
     return os.path.join(model_store, mar_name)
 
 

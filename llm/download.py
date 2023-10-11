@@ -14,11 +14,16 @@ FILE_EXTENSIONS_TO_IGNORE = [".safetensors", ".safetensors.index.json"]
 
 MODEL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'model_config.json')
 
+MIN_REPO_VERSION_LEN = MAR_NAME_LEN = 7
+# MIN_REPO_VERSION_LEN - Minimum number of characters allowed in 'repo_version' argument
+# MAR_NAME_LEN - Number of characters to include from repo_version in MAR name
+
 class DownloadDataModel(object):
     model_name = str()
     model_path = str()
     download_model = bool()
     mar_output = str()
+    mar_name = str()
     repo_id = str()
     repo_version = str()
     handler_path = str()
@@ -37,6 +42,8 @@ def set_values(args):
     dl_model.hf_token = args.hf_token
     dl_model.debug = args.debug
     read_config_for_download(dl_model)
+    # Sets MAR file name name as <model_name>_<first_6_chars_of_repo_version>
+    dl_model.mar_name = f"{dl_model.model_name}_{dl_model.repo_version[0:MAR_NAME_LEN]}"
     return dl_model
 
 
@@ -56,7 +63,7 @@ def filter_files_by_extension(filenames, extensions_to_remove):
 
 
 def check_if_mar_exists(dl_model):
-    check_path = os.path.join(dl_model.mar_output, f"{dl_model.model_name}_{dl_model.repo_version}.mar")
+    check_path = os.path.join(dl_model.mar_output, f"{dl_model.mar_name}.mar")
     if os.path.exists(check_path):
         print(f"## Skipping MAR file generation as it already exists\nModel name: {dl_model.model_name}\nRepository Version: {dl_model.repo_version}\n")
         sys.exit(1)
@@ -70,8 +77,8 @@ def check_if_model_files_exist(dl_model):
     return compare_lists(extra_files_list, repo_files)
 
 
-def create_tmp_model_store(mar_output, model_name, repo_version):
-    dir_name = f"tmp_{model_name}_{repo_version}"
+def create_tmp_model_store(mar_output, mar_name):
+    dir_name = f"tmp_{mar_name}"
     tmp_dir = os.path.join(mar_output, dir_name)
     rm_dir(tmp_dir) # delete existing tmp if it exists
     create_folder_if_not_exists(tmp_dir)
@@ -80,7 +87,8 @@ def create_tmp_model_store(mar_output, model_name, repo_version):
 
 def move_mar(dl_model, tmp_dir):
     old_filename = f"{dl_model.model_name}.mar"
-    new_filename = f"{dl_model.model_name}_{dl_model.repo_version}.mar"
+    # using first six characters of repo_version in the MAR filename
+    new_filename = f"{dl_model.mar_name}.mar"
     src = os.path.join(tmp_dir, old_filename)
     dst = os.path.join(dl_model.mar_output, new_filename)
     check_if_path_exists(src, "Generated mar file is missing")
@@ -97,10 +105,14 @@ def read_config_for_download(dl_model):
                 dl_model.repo_id = models[dl_model.model_name]['repo_id']
                 if not dl_model.repo_version:
                     dl_model.repo_version = models[dl_model.model_name]['repo_version']
+                
+                if len(dl_model.repo_version) < MIN_REPO_VERSION_LEN:
+                    print(f"## Error: 'repo_version' should be at least {MIN_REPO_VERSION_LEN} characters long")
+                    sys.exit(1)
 
                 # Make sure there is HF hub token for LLAMA(2)
                 if dl_model.repo_id.startswith("meta-llama") and dl_model.hf_token is None:
-                    print(f"HuggingFace Hub token is required for llama download. Please specify it using --hf_token=<your token>. Refer https://huggingface.co/docs/hub/security-tokens")
+                    print(f"## Error: HuggingFace Hub token is required for llama download. Please specify it using --hf_token=<your token>. Refer https://huggingface.co/docs/hub/security-tokens")
                     sys.exit(1)
 
                 # Validate downloaded files
@@ -112,7 +124,7 @@ def read_config_for_download(dl_model):
                     dl_model.handler_path = os.path.join(os.path.dirname(__file__),
                                                      models[dl_model.model_name]["handler"])
             except Exception:
-                print(f"## Error: Please check either repo_id or repo_version is not correct\n")
+                print(f"## Error: Please check either repo_id, repo_version or HuggingFace ID is not correct\n")
                 sys.exit(1)
         else:
             print("## Please check your model name, it should be one of the following : ")
@@ -142,7 +154,7 @@ def create_mar(dl_model):
         sys.exit(1)
 
     # Creates a temporary directory with the name "tmp_<model-name>_<repo-version>" inside model_store
-    tmp_dir = create_tmp_model_store(dl_model.mar_output, dl_model.model_name, dl_model.repo_version)
+    tmp_dir = create_tmp_model_store(dl_model.mar_output, dl_model.mar_name)
 
     mg.generate_mars(dl_model=dl_model, 
                      mar_config=MODEL_CONFIG_PATH,

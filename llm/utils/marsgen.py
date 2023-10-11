@@ -13,6 +13,7 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
     handler = dl_model.handler_path
     check_if_path_exists(handler)
 
+    # Reading all files in model_path to make extra_files string
     extra_files_list = os.listdir(dl_model.model_path)
     extra_files_list = [os.path.join(dl_model.model_path, file) for file in extra_files_list]
     extra_files = ','.join(extra_files_list)
@@ -20,18 +21,10 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
     export_path = model_store_dir
     check_if_path_exists(export_path)
 
-    runtime = None
-    archive_format = None
-    requirements_file = None
-    model_file_input = None
-
-    cmd = model_archiver_command_builder(dl_model.model_name,
-                                            dl_model.repo_version,
-                                            model_file_input,
-                                            handler, extra_files,
-                                            runtime, archive_format, 
-                                            requirements_file,
-                                            export_path,
+    cmd = model_archiver_command_builder(model_name = dl_model.model_name,
+                                            version=dl_model.repo_version,
+                                            handler=handler, extra_files=extra_files,
+                                            export_path=export_path,
                                             debug=debug)
 
     debug and print(f"## In directory: {os.getcwd()} | Executing command: {cmd}\n")
