@@ -3,9 +3,6 @@ import platform
 import subprocess
 import sys
 
-REPO_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-sys.path.append(REPO_ROOT)
-
 nvidia_smi_cmd = {
     "Windows": "nvidia-smi.exe",
     "Darwin": "nvidia-smi",

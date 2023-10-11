@@ -1,12 +1,8 @@
 import os
 import sys
 import traceback
-
-REPO_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(REPO_ROOT)
-
-import tsutils as ts
-import system_utils
+import utils.tsutils as ts
+import utils.system_utils as su
 
 def error_msg_print():
     print("\n**************************************")
@@ -29,11 +25,11 @@ def get_inputs_from_folder(input_path):
 
 
 def set_compute_setting(gpus):
-    if gpus > 0 and system_utils.is_gpu_instance():
+    if gpus > 0 and su.is_gpu_instance():
         import torch
 
         if not torch.cuda.is_available():
-            sys.exit("## Ohh its NOT running on GPU ! \n")
+            sys.exit("## CUDA not found \n")
         print(f'\n## Running on {gpus} GPU(s) \n')
 
     else:

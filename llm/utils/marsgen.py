@@ -1,11 +1,7 @@
 import os
 import sys
 import subprocess
-
-REPO_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(REPO_ROOT)
-
-from system_utils import check_if_path_exists
+from utils.system_utils import check_if_path_exists
 
 # MAR_NAME_LEN - Number of characters to include from repo_version in MAR name
 MAR_NAME_LEN = 7
