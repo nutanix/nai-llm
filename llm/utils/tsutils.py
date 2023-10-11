@@ -3,7 +3,6 @@ import platform
 import time
 import json
 import requests
-import marsgen as mg
 
 torchserve_command = {
     "Windows": "torchserve.exe",
@@ -49,10 +48,10 @@ def start_torchserve(ncs=False, model_store="model_store",
     if status == 0:
         print("## Successfully started TorchServe \n")
         time.sleep(wait_for)
-        return (True)
+        return True
     else:
         print("## TorchServe failed to start ! Make sure it's not running already\n")
-        return (False)
+        return False
 
 
 def stop_torchserve(wait_for=10):
@@ -79,7 +78,8 @@ def set_model_params(model_name):
                          "NAI_TOP_P":"top_p",
                          "NAI_MAX_TOKENS":"max_new_tokens"}
     # Set the new environment variables with the provided values in model_config and
-    # delete the environment variable value if not specified in model_config or if modes_parms not present in model_config
+    # delete the environment variable value if not specified in model_config
+    # or if modes_parms not present in model_config
     with open(os.path.join(dirpath, '../model_config.json'), 'r') as file:
         model_config = json.loads(file.read())
         if model_name in model_config:
@@ -118,12 +118,12 @@ def get_params_for_registration(model_name):
     return initial_workers, batch_size, max_batch_delay, response_timeout
 
 
-def register_model(model_name, marfile, gpus, 
+def register_model(model_name, marfile, gpus,
                    protocol="http", host="localhost",
                    port="8081"):
-    print(f"\n## Registering {marfile} model, this might take a while \n")
+    print(f"\n## Registering {model_name} model, this might take a while \n")
     initial_workers, batch_size, max_batch_delay, response_timeout = get_params_for_registration(model_name)
-    if(initial_workers is None): #setting the default value of workers to number of gpus
+    if initial_workers is None: #setting the default value of workers to number of gpus
         initial_workers = gpus
 
     params = (
