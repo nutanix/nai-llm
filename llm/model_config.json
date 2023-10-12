@@ -27,7 +27,7 @@
             "max_new_tokens" : 200
         }, 
         "registration_params":{
-            "batch_size" : 2,
+            "batch_size" : 1,
             "max_batch_delay" : 200,
             "response_timeout" : 2000
         },
