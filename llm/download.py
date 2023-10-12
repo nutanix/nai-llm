@@ -6,10 +6,10 @@ from collections import Counter
 import re
 from huggingface_hub import snapshot_download, HfApi
 from utils.marsgen import get_mar_name, generate_mars
-from utils.system_utils import check_if_path_exists, check_if_folder_empty, create_folder_if_not_exists
+from utils.system_utils import check_if_path_exists, check_if_folder_empty, create_folder_if_not_exists, get_all_files_in_directory
 from utils.shell_utils import mv_file, rm_dir
 
-FILE_EXTENSIONS_TO_IGNORE = [".safetensors", ".safetensors.index.json"]
+FILE_EXTENSIONS_TO_IGNORE = [".safetensors", ".safetensors.index.json", ".h5", ".ot", ".tflite", ".msgpack", ".onnx"]
 
 MODEL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'model_config.json')
 
@@ -65,7 +65,7 @@ def check_if_mar_exists(dl_model):
 
 
 def check_if_model_files_exist(dl_model):
-    extra_files_list = os.listdir(dl_model.model_path)
+    extra_files_list = get_all_files_in_directory(dl_model.model_path)
     hf_api = HfApi()
     repo_files = hf_api.list_repo_files(repo_id=dl_model.repo_id,
                                         revision=dl_model.repo_version,

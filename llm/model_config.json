@@ -27,7 +27,7 @@
             "max_new_tokens" : 200
         }, 
         "registration_params":{
-            "batch_size" : 1,
+            "batch_size" : 2,
             "max_batch_delay" : 200,
             "response_timeout" : 2000
         },
@@ -54,6 +54,17 @@
         "handler": "handler.py",
         "repo_id": "microsoft/phi-1_5",
         "repo_version": "b6a7e2fe15c21f5847279f23e280cc5a0e7049ef",
+        "registration_params":{
+            "batch_size" : 1,
+            "max_batch_delay" : 200,
+            "response_timeout" : 2000
+        },
+        "gpu_type": ["A100-PCIE-40GB","A100-PCIE-80GB"]
+    },
+    "gpt2": {
+        "handler": "handler.py",
+        "repo_id": "gpt2",
+        "repo_version": "11c5a3d5811f50298f278a704980280950aedb10",
         "registration_params":{
             "batch_size" : 1,
             "max_batch_delay" : 200,

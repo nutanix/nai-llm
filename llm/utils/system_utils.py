@@ -69,3 +69,24 @@ def remove_suffix_if_starts_with(string, suffix):
         return string[len(suffix):]
     else:
         return string
+
+"""
+This function provides a list of file names in a directory
+and its sub-directories
+
+Args:
+    path (str): The path to the directory.
+
+Returns:
+    ["file.txt", "sub-directory/file.txt"]
+"""
+def get_all_files_in_directory(path):
+    output =[]
+    for (dir_path, _, file_names) in os.walk(path):
+        sub_dir = dir_path.removeprefix(path)
+        if sub_dir:
+            output.extend([f"{sub_dir}/{file_name}" for file_name in file_names])
+        else:
+            output.extend(file_names)
+    
+    return output
