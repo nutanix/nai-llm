@@ -13,6 +13,6 @@ import utils.tsutils as ts
 ts.stop_torchserve()
 dirpath = os.path.dirname(__file__)
 # clean up the logs folder to reset logs before the next run
-rm_dir(os.path.join(dirpath, "gen", "logs"))
+rm_dir(os.path.join(dirpath, "utils", "gen", "logs"))
 # clean up the entire generate folder
-rm_dir(os.path.join(dirpath, "gen"))
+rm_dir(os.path.join(dirpath, "utils", "gen"))
