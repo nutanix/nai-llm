@@ -72,7 +72,7 @@ bash run.sh -n <MODEL_NAME> -a <MAR_EXPORT_PATH> -g <NUM_GPUS> [OPTIONAL -d <INP
 - a:    Absolute path to the Model Store directory
 
 For model names, we support MPT-7B, Falcon-7b and Llama2-7B.
-Should print "Inference Run Successful" as a message at the end
+Should print "Ready For Inferencing" as a message at the end
 
 ##### Examples
 For 1 GPU Inference with official MPT-7B model:
