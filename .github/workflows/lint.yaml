@@ -9,12 +9,6 @@ on:
   pull_request:
     branches:
       - main
-  pull_request_target:
-    types: [assigned, opened, synchronize, reopened, converted_to_draft]
-
-permissions:
-  actions: write
-  checks: write
 
 jobs:
   run-linters:

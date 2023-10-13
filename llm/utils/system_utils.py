@@ -9,6 +9,7 @@ import os
 import platform
 import subprocess
 import sys
+from pathlib import Path
 
 nvidia_smi_cmd = {
     "Windows": "nvidia-smi.exe",
@@ -96,3 +97,22 @@ def remove_suffix_if_starts_with(string, suffix):
     if string.startswith(suffix):
         return string[len(suffix) :]
     return string
+
+
+def get_all_files_in_directory(directory):
+    """
+    This function provides a list of file names in a directory
+    and its sub-directories
+    Args:
+        path (str): The path to the directory.
+    Returns:
+        ["file.txt", "sub-directory/file.txt"]
+    """
+    output = []
+    directory_path = Path(directory)
+    output = [
+        str(file.relative_to(directory_path))
+        for file in directory_path.rglob("*")
+        if file.is_file()
+    ]
+    return output

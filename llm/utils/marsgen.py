@@ -8,7 +8,7 @@ Attributes:
 import os
 import sys
 import subprocess
-from utils.system_utils import check_if_path_exists
+from utils.system_utils import check_if_path_exists, get_all_files_in_directory
 
 # MAR_NAME_LEN - Number of characters to include from repo_version in MAR name
 MAR_NAME_LEN = 7
@@ -54,7 +54,7 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
     check_if_path_exists(handler, "Handler file", is_dir=False)
 
     # Reading all files in model_path to make extra_files string
-    extra_files_list = os.listdir(dl_model.mar_utils.model_path)
+    extra_files_list = get_all_files_in_directory(dl_model.mar_utils.model_path)
     extra_files_list = [
         os.path.join(dl_model.mar_utils.model_path, file) for file in extra_files_list
     ]

@@ -23,16 +23,6 @@ def error_msg_print():
     ts.stop_torchserve()
 
 
-# def get_model_name(input_dict, model_url):
-#     for entry in input_dict["models"]:
-#         if model_url == entry["modelUrl"]:
-#             return entry["modelName"]
-
-#     print("\n model not found among registered models")
-#     error_msg_print()
-#     sys.exit(1)
-
-
 def get_inputs_from_folder(input_path):
     """
     get_inputs_from_folder
@@ -97,11 +87,11 @@ def start_ts_server(ts_data, gpus, debug):
 def execute_inference_on_inputs(model_inputs, model_name):
     """
     execute_inference_on_inputs
-    This function runs inference on given input data folder and model name by
+    This function runs inference on given input data files and model name by
     calling run_inference from tsutils.
 
     Args:
-        model_inputs (str): Path to input data directory.
+        model_inputs (list(str)): Paths to input data files.
         model_name (str): Name of the model.
     """
     for data in model_inputs:
@@ -162,7 +152,8 @@ def validate_inference_model(models_to_validate, debug):
     and calls execute_inference_on_inputs
 
     Args:
-        models_to_validate (list(dict)): List of dict containing model name and path to input folder
+        models_to_validate (list(dict)): List of dict containing model name and
+                                        list of paths of input files.
         debug (bool): Flag to print debug statements.
     """
     for model in models_to_validate:

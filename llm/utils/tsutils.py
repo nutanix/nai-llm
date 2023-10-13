@@ -238,7 +238,7 @@ def run_inference(
     This function sends request to run inference on Torchserve.
 
     Args:
-        model_inference_data (str, str): The model name and input file path
+        model_inference_data (str, list(str)): The model name and paths of input files.
         protocol (str, optional): Request protocol. Defaults to "http".
         host (str, optional): Request host. Defaults to "localhost".
         port (str, optional): Request Port. Defaults to "8081".

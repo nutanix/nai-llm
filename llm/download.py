@@ -20,10 +20,19 @@ from utils.system_utils import (
     check_if_path_exists,
     check_if_folder_empty,
     create_folder_if_not_exists,
+    get_all_files_in_directory,
 )
 from utils.shell_utils import mv_file, rm_dir
 
-FILE_EXTENSIONS_TO_IGNORE = [".safetensors", ".safetensors.index.json"]
+FILE_EXTENSIONS_TO_IGNORE = [
+    ".safetensors",
+    ".safetensors.index.json",
+    ".h5",
+    ".ot",
+    ".tflite",
+    ".msgpack",
+    ".onnx",
+]
 
 MODEL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "model_config.json")
 
@@ -37,7 +46,7 @@ class MarUtils:
         mar_output (str): Path of directory to export MAR file.
         mar_name (str): Name of MAR file.
         model_path (str): Path of model files directory.
-        handler_path (str): Path og handler file of Torchserve.
+        handler_path (str): Path of handler file of Torchserve.
     """
 
     mar_output = str()
@@ -69,14 +78,14 @@ class DownloadDataModel:
 
     Attributes:
         model_name (str): Name of the model.
-        download_model (bool): Boolean to skip download model.
+        skip_download (bool): Set to skip download model.
         mar_utils (MarUtils): Contains data regarding MAR file generation.
         repo_info (RepoInfo): Contains data regarding HuggingFace model repository.
         debug (bool): Flag to print debug statements.
     """
 
     model_name = str()
-    download_model = bool()
+    skip_download = bool()
     mar_utils = MarUtils()
     repo_info = RepoInfo()
     debug = bool()
@@ -95,14 +104,18 @@ def set_values(params):
     """
     dl_model = DownloadDataModel()
     dl_model.model_name = params.model_name
-    dl_model.download_model = params.no_download
-    dl_model.repo_info.hf_token = params.hf_token
+    dl_model.skip_download = params.no_download
     dl_model.debug = params.debug
+
+    dl_model.repo_info.hf_token = params.hf_token
     dl_model.repo_info.repo_version = params.repo_version
+
     dl_model.mar_utils.handler_path = params.handler_path
     dl_model.mar_utils.model_path = params.model_path
     dl_model.mar_utils.mar_output = params.mar_output
+
     read_config_for_download(dl_model)
+
     # Sets MAR file name name as <model_name>_<first_n_chars_of_repo_version>
     dl_model.mar_utils.mar_name = get_mar_name(
         dl_model.model_name, dl_model.repo_info.repo_version
@@ -197,7 +210,7 @@ def check_if_model_files_exist(dl_model):
         bool: True if the downloaded model files match the expected
               repository files, False otherwise.
     """
-    extra_files_list = os.listdir(dl_model.mar_utils.model_path)
+    extra_files_list = get_all_files_in_directory(dl_model.mar_utils.model_path)
     hf_api = hfh.HfApi()
     repo_files = hf_api.list_repo_files(
         repo_id=dl_model.repo_info.repo_id,
@@ -238,7 +251,6 @@ def move_mar(dl_model, tmp_dir):
         tmp_dir (str): Path of temporary directory.
     """
     old_filename = f"{dl_model.model_name}.mar"
-    # using first six characters of repo_version in the MAR filename
     new_filename = f"{dl_model.mar_utils.mar_name}.mar"
     src = os.path.join(tmp_dir, old_filename)
     dst = os.path.join(dl_model.mar_utils.mar_output, new_filename)
@@ -401,7 +413,7 @@ def run_script(params):
     check_if_path_exists(dl_model.mar_utils.mar_output, "mar_output", is_dir=True)
     check_if_mar_exists(dl_model)
 
-    if dl_model.download_model:
+    if not dl_model.skip_download:
         dl_model = run_download(dl_model)
     create_mar(dl_model)
 
@@ -425,7 +437,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--no_download",
-        action="store_false",
+        action="store_true",
         help="Set flag to skip downloading the model files",
     )
     parser.add_argument(
