@@ -1,5 +1,4 @@
 """
-system_utils
 This module contains utilities to run system operations.
 
 Attributes:
@@ -20,7 +19,6 @@ nvidia_smi_cmd = {
 
 def is_gpu_instance():
     """
-    is_gpu_instance
     This function checks if CUDA drivers are installed and GPU is present.
 
     Raises:
@@ -40,7 +38,6 @@ def is_gpu_instance():
 
 def check_if_path_exists(filepath, err="", is_dir=False):
     """
-    check_if_path_exists
     This function checks if a given path exists.
 
     Args:
@@ -57,7 +54,6 @@ def check_if_path_exists(filepath, err="", is_dir=False):
 
 def create_folder_if_not_exists(path):
     """
-    create_folder_if_not_exists
     This function creates a dirctory if it doesn't already exist.
 
     Args:
@@ -69,7 +65,6 @@ def create_folder_if_not_exists(path):
 
 def check_if_folder_empty(path):
     """
-    check_if_folder_empty
     This function checks if a directory is empty.
 
     Args:
@@ -84,7 +79,6 @@ def check_if_folder_empty(path):
 
 def remove_suffix_if_starts_with(string, suffix):
     """
-    remove_suffix_if_starts_with
     This function removes a suffix of a string is it starts with a given suffix
 
     Args:

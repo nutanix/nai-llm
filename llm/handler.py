@@ -1,5 +1,4 @@
 """
-handler
 This module serves as a handler for a LLM, allowing it to be used in an inference service.
 The handler provides functions to preprocess input data, make predictions using the model,
 and post-process the output for a particular use case.
@@ -19,7 +18,6 @@ logger.info("Transformers version %s", transformers.__version__)
 
 def get_env_value(env_var):
     """
-    get_env_value
     This function reads the inputed environment variable and converts it to float
     and returns it. This is used for reading model generation parameters.
 

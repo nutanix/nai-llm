@@ -1,5 +1,4 @@
 """
-inference_data_model
 This module stores the dataclass InferenceDataModel and it's related functions.
 """
 import os
@@ -72,7 +71,6 @@ def set_data_model(args):
 
 def prepare_settings(data_model):
     """
-    prepare_settings
     This function sets ts_data attribute of InferenceDataModel class,
     sets environment variables LOG_LOCATION and METRICS_LOCATION and makes gen folder.
 

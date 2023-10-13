@@ -1,5 +1,4 @@
 """
-cleanup
 This module is used for cleanup. It stops Torchserve if it is running and
 deletes all temporary files and directories generated during the run.
 

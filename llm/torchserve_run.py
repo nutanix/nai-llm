@@ -1,5 +1,4 @@
 """
-torchserve_run
 This module starts Torchserve, registers the given LLM model and runs inference using
 the given inputs after validating all the input parameters required to do the same.
 
@@ -23,7 +22,6 @@ MODEL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "model_config.json")
 
 def read_config_for_inference(params):
     """
-    read_config_for_inference
     Function that reads repo version and validates GPU type
 
     Args:
@@ -63,7 +61,6 @@ def read_config_for_inference(params):
 
 def set_mar_filepath(model_store, model_name, repo_version):
     """
-    set_mar_filepath
     Funtion that creates the MAR file path given the model store, model name and repo version.
     The name of the MAR file is returned from get_mar_name from marsgen.
 
@@ -81,7 +78,6 @@ def set_mar_filepath(model_store, model_name, repo_version):
 
 def run_inference_with_mar(params):
     """
-    run_inference_with_mar
     Function that checks sets the required parameters, starts Torchserve, registers
     the model and runs inference on given input data.
 
@@ -95,7 +91,6 @@ def run_inference_with_mar(params):
 
 def run_inference(params):
     """
-    run_inference
     This function validates model store directory, MAR file path, input data directory,
     generates the temporary gen folder to store logs and sets model generation parameters as
     environment variables. Then it calls run_inference_with_mar.
@@ -124,7 +119,6 @@ def run_inference(params):
 
 def torchserve_run(params):
     """
-    torchserve_run
     This function calls cleanup function, check if model config exists and then calls run_inference.
 
     Args:
@@ -150,7 +144,6 @@ def torchserve_run(params):
 
 def cleanup(gen_folder, ts_stop=True, ts_cleanup=True):
     """
-    cleanup
     This function stops Torchserve, deletes the temporary gen folder and the logs in it.
 
     Args:

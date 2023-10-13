@@ -1,5 +1,4 @@
 """
-shell_utils
 This module contains utilities to run shell operations namely:
 remove files, remove folder, move file
 """
@@ -11,7 +10,6 @@ from pathlib import Path
 
 def rm_file(path, regex=False):
     """
-    rm_file
     This function deletes file or files in a path recursively.
 
     Args:
@@ -31,7 +29,6 @@ def rm_file(path, regex=False):
 
 def rm_dir(path):
     """
-    rm_dir
     This function deletes a directory.
 
     Args:
@@ -45,7 +42,6 @@ def rm_dir(path):
 
 def mv_file(src, dst):
     """
-    mv_file
     This function moves a file from src to dst.
 
     Args:

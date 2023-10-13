@@ -1,5 +1,4 @@
 """
-download
 This module downloads model files and generates MAR file.
 
 Attributes:
@@ -94,7 +93,6 @@ class DownloadDataModel:
 
 def set_values(params):
     """
-    set_values
     This function sets values for the DownloadDataModel object based on the command-line arguments.
 
     Args:
@@ -126,7 +124,6 @@ def set_values(params):
 
 def get_ignore_pattern_list(extension_list):
     """
-    get_ignore_pattern_list
     This function takes a list of file extensions and returns a list of patterns that
     can be used to filter out files with these extensions during model download.
 
@@ -178,7 +175,6 @@ def filter_files_by_extension(filenames, extensions_to_remove):
 
 def check_if_mar_exists(dl_model):
     """
-    check_if_mar_exists
     This function checks if MAR file of a model already exists and skips
     generation if the MAR file already exists
 
@@ -199,7 +195,6 @@ def check_if_mar_exists(dl_model):
 
 def check_if_model_files_exist(dl_model):
     """
-    check_if_model_files_exist
     This function compares the list of files in the downloaded model directory with the
     list of files in the HuggingFace repository. It takes into account any files to
     ignore based on predefined extensions.
@@ -224,7 +219,6 @@ def check_if_model_files_exist(dl_model):
 
 def create_tmp_model_store(mar_output, mar_name):
     """
-    create_tmp_model_store
     This function creates a temporary directory in model store in which
     the MAR file will be stored temporarily.
 
@@ -244,7 +238,6 @@ def create_tmp_model_store(mar_output, mar_name):
 
 def move_mar(dl_model, tmp_dir):
     """
-    move_mar
     This funtion moves MAR file from the temporary directory to model store.
 
     Args:
@@ -261,7 +254,6 @@ def move_mar(dl_model, tmp_dir):
 
 def read_config_for_download(dl_model):
     """
-    read_config_for_download
     This function reads repo id, version and handler name from
     model_config.json and sets values for the DownloadDataModel object.
 
@@ -327,7 +319,6 @@ def read_config_for_download(dl_model):
 
 def run_download(dl_model):
     """
-    run_download
     This function checks if the given model path directory is empty and then
     downloads the given version's model files at that path.
 
@@ -360,7 +351,6 @@ def run_download(dl_model):
 
 def create_mar(dl_model):
     """
-    create_mar
     This function checks if the Model Archive (MAR) file for the downloaded
     model exists in the specified model path otherwise generates the MAR file.
     The MAR file is generated in a temporary folder and then moved to model store
@@ -397,7 +387,6 @@ def create_mar(dl_model):
 
 def run_script(params):
     """
-    run_script
     This function validates input parameters and downloads model files,
     creates model archive file (MAR file) for the given model.
 

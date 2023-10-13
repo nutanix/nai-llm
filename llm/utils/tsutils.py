@@ -1,5 +1,4 @@
 """
-tsutils
 This module contains the utilities required to manage Torchserve start,
 model registration, inferencing and Torchserve stop.
 
@@ -29,7 +28,6 @@ torch_model_archiver_command = {
 
 def generate_ts_start_cmd(ncs, ts_data, gpus, debug):
     """
-    generate_ts_start_cmd
     This function generates the Torchserve start command.
 
     Args:
@@ -60,7 +58,6 @@ def generate_ts_start_cmd(ncs, ts_data, gpus, debug):
 
 def start_torchserve(ts_data, ncs=True, wait_for=10, gpus=0, debug=False):
     """
-    start_torchserve
     This function calls generate_ts_start_cmd function to get the Torchserve start command
     and runs the same to start Torchserve.
 
@@ -88,7 +85,6 @@ def start_torchserve(ts_data, ncs=True, wait_for=10, gpus=0, debug=False):
 
 def stop_torchserve(wait_for=10):
     """
-    stop_torchserve
     This function is used to stop Torchserve.
 
     Args:
@@ -115,7 +111,6 @@ def stop_torchserve(wait_for=10):
 
 def set_model_params(model_name):
     """
-    set_model_params
     This function reads generation parameters from model_config.json and sets them as
     environment variables for the handler to read. The generation parameters are :
     temperature, repetition_penalty, top_p, max_new_tokens.
@@ -151,7 +146,6 @@ def set_model_params(model_name):
 
 def get_params_for_registration(model_name):
     """
-    get_params_for_registration
     This function reads registration parameters from model_config.json returns them.
     The generation parameters are :
     initial_workers, batch_size, max_batch_delay, response_timeout.
@@ -190,7 +184,6 @@ def register_model(
     model_register_data, gpus, protocol="http", host="localhost", port="8081"
 ):
     """
-    register_model
     This functions is used to register a model on Torchserve.
 
     Args:
@@ -234,7 +227,6 @@ def run_inference(
     model_inference_data, protocol="http", host="localhost", port="8080", timeout=120
 ):
     """
-    run_inference
     This function sends request to run inference on Torchserve.
 
     Args:
@@ -263,7 +255,6 @@ def unregister_model(
     model_name, protocol="http", host="localhost", port="8081", timeout=200
 ):
     """
-    unregister_model
     This function sends request to unregister model on Torchserve.
 
     Args:

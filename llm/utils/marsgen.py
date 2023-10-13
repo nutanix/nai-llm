@@ -1,5 +1,4 @@
 """
-marsgen
 This module contains utilities for MAR file generation
 
 Attributes:
@@ -16,7 +15,6 @@ MAR_NAME_LEN = 7
 
 def get_mar_name(model_name, repo_version):
     """
-    get_mar_name
     This function returns MAR file name using model name and repo version.
 
     Args:
@@ -32,7 +30,6 @@ def get_mar_name(model_name, repo_version):
 
 def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
     """
-    generate_mars
     This function runs Torch Model Archiver command to generate MAR file. It calls the
     model_archiver_command_builder function to generate the command which it then runs
 
@@ -96,7 +93,6 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
 
 def model_archiver_command_builder(model_archiver_args, debug=False):
     """
-    model_archiver_command_builder
     This function makes the Torch Model Archiver command using model_archiver_args parameter.
 
     Args:

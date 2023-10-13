@@ -1,5 +1,4 @@
 """
-inference_utils
 This module contains utilities to start and manage Torchserve server.
 """
 import os
@@ -14,7 +13,6 @@ import utils.inference_data_model as idm
 
 def error_msg_print():
     """
-    error_msg_print
     This function prints an error message and stops Torchserve.
     """
     print("\n**************************************")
@@ -25,7 +23,6 @@ def error_msg_print():
 
 def set_compute_setting(gpus):
     """
-    set_compute_setting
     This function read the compute setting (either GPU or CPU).
 
     Args:
@@ -43,7 +40,6 @@ def set_compute_setting(gpus):
 
 def ts_health_check():
     """
-    ts_health_check
     This function makes health check request to server.
     """
     os.system("curl localhost:8080/ping")
@@ -51,7 +47,6 @@ def ts_health_check():
 
 def start_ts_server(ts_data, gpus, debug):
     """
-    start_ts_server
     This function starts Torchserve by calling start_torchserve from tsutils
     and throws error if it doesn't start.
 
@@ -68,7 +63,6 @@ def start_ts_server(ts_data, gpus, debug):
 
 def execute_inference_on_inputs(model_inputs, model_name):
     """
-    execute_inference_on_inputs
     This function runs inference on given input data files and model name by
     calling run_inference from tsutils.
 
@@ -92,7 +86,6 @@ def execute_inference_on_inputs(model_inputs, model_name):
 
 def register_model(model_name, input_mar, gpus):
     """
-    register_model
     This function registers model on Torchserve by calling register_model from tsutils.
 
     Args:
@@ -112,7 +105,6 @@ def register_model(model_name, input_mar, gpus):
 
 def unregister_model(model_name):
     """
-    unregister_model
     This function unregisters model on Torchserve by calling unregister_model from tsutils.
 
     Args:
@@ -129,7 +121,6 @@ def unregister_model(model_name):
 
 def validate_inference_model(models_to_validate, debug):
     """
-    validate_inference_model
     This function consolidates model name and input to use for inference
     and calls execute_inference_on_inputs
 
@@ -151,7 +142,6 @@ def validate_inference_model(models_to_validate, debug):
 
 def get_inference_internal(data_model, debug):
     """
-    get_inference_internal
     This function starts Torchserve, runs health check of server, registers model,
     and runs inference on input folder path.
 
@@ -182,7 +172,6 @@ def get_inference_internal(data_model, debug):
 
 def get_inference_with_mar(data_model, debug=False):
     """
-    get_inference_with_mar
     This function sets ts_data in data_model (InferenceDataModel), and calls get_inference_internal,
     and catches any execptions caused by sending requests.
 
