@@ -259,7 +259,9 @@ def run_inference(
     return response
 
 
-def unregister_model(model_name, protocol="http", host="localhost", port="8081", timeout=200):
+def unregister_model(
+    model_name, protocol="http", host="localhost", port="8081", timeout=200
+):
     """
     unregister_model
     This function sends request to unregister model on Torchserve.
