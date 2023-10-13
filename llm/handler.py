@@ -52,12 +52,6 @@ class LLMHandler(BaseHandler, ABC):
     Attributes:
         initialized (bool): Flag indicating that Torchserve is initialized.
 
-        request_list (dict):
-
-        request_ids (dict):
-
-        request_type (dict):
-
         device (torch.device): The device that is being used for generation.
 
         map_location(str): The type of device where the model is
@@ -77,12 +71,11 @@ class LLMHandler(BaseHandler, ABC):
             the provided model name and model files present in MAR file.
 
         preprocess(text: str) -> Tensor:
-            This method tookenizes input text using the associated tokenizer.
+            This method tokenizes input text using the associated tokenizer.
             Args:
                 text (str): The input text to be tokenized.
             Returns:
                 Tensor: Tokenized input data
-
 
         inference(data: Tensor) -> list(str):
             This method reads the generation parameters set as environment vairables
@@ -99,15 +92,6 @@ class LLMHandler(BaseHandler, ABC):
                 data (list(str)): A list containing the output text of model generation.
             Returns:
                 list(str): A list containing model's generated output.
-        _batch_to_json():
-        _to_json():
-        get_env_value(str) -> float:
-            This method reads the inputed environment variable and converts it to float
-            and returns it. This is used for reading model generation parameters.
-            Args:
-                env_var (str): Environment variable to be read.
-            Returns:
-                float: Value of the enviroment variable read.
     """
 
     def __init__(self):
