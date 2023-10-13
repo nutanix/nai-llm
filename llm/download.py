@@ -264,12 +264,12 @@ def read_config_for_download(dl_model):
         sys.exit(1): If model name, repo_id or repo_version is not valid, the
                      function will terminate the program with an exit code of 1.
     """
-    # Read and validate the repo_id and repo_version
     check_if_path_exists(MODEL_CONFIG_PATH, "Model Config", is_dir=False)
     with open(MODEL_CONFIG_PATH, encoding="UTF-8") as config:
         models = json.loads(config.read())
         if dl_model.model_name in models:
             try:
+                # Read and validate the repo_id and repo_version
                 dl_model.repo_info.repo_id = models[dl_model.model_name]["repo_id"]
                 if not dl_model.repo_info.repo_version:
                     dl_model.repo_info.repo_version = models[dl_model.model_name][
