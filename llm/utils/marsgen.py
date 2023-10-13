@@ -1,3 +1,10 @@
+"""
+marsgen
+This module contains utilities for MAR file generation
+
+Attributes:
+    MAR_NAME_LEN (int): Number of characters to include from repo_version in MAR name
+"""
 import os
 import sys
 import subprocess
@@ -6,72 +13,112 @@ from utils.system_utils import check_if_path_exists
 # MAR_NAME_LEN - Number of characters to include from repo_version in MAR name
 MAR_NAME_LEN = 7
 
+
 def get_mar_name(model_name, repo_version):
+    """
+    get_mar_name
+    This function returns MAR file name using model name and repo version.
+
+    Args:
+        model_name (str): Name of the model.
+        repo_version (str): Commit ID of model's repo from HuggingFace repository.
+
+    Returns:
+        str: MAR file name.
+    """
     mar_name = f"{model_name}_{repo_version[0:MAR_NAME_LEN]}"
     return mar_name
 
 
 def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
-    debug and print(f"## Starting generate_mars, mar_config:{mar_config}, model_store_dir:{model_store_dir}\n")
+    """
+    generate_mars
+    This function runs Torch Model Archiver command to generate MAR file. It calls the
+    model_archiver_command_builder function to generate the command which it then runs
+
+    Args:
+        dl_model (DownloadDataModel): Dataclass that contains data required to generate MAR file.
+        mar_config (str): Path to model_config.json.
+        model_store_dir (str): Absolute path of export of MAR file.
+        debug (bool, optional): Flag to print debug statements. Defaults to False.
+    """
+    if debug:
+        print(
+            f"## Starting generate_mars, mar_config:{mar_config}"
+            f", model_store_dir:{model_store_dir}\n"
+        )
     cwd = os.getcwd()
     os.chdir(os.path.dirname(mar_config))
 
-    handler = dl_model.handler_path
-    check_if_path_exists(handler)
+    handler = dl_model.mar_utils.handler_path
+    check_if_path_exists(handler, "Handler file", is_dir=False)
 
     # Reading all files in model_path to make extra_files string
-    extra_files_list = os.listdir(dl_model.model_path)
-    extra_files_list = [os.path.join(dl_model.model_path, file) for file in extra_files_list]
-    extra_files = ','.join(extra_files_list)
+    extra_files_list = os.listdir(dl_model.mar_utils.model_path)
+    extra_files_list = [
+        os.path.join(dl_model.mar_utils.model_path, file) for file in extra_files_list
+    ]
+    extra_files = ",".join(extra_files_list)
 
     export_path = model_store_dir
-    check_if_path_exists(export_path)
+    check_if_path_exists(export_path, "Model Store", is_dir=True)
 
-    cmd = model_archiver_command_builder(model_name = dl_model.model_name,
-                                            version=dl_model.repo_version,
-                                            handler=handler, extra_files=extra_files,
-                                            export_path=export_path,
-                                            debug=debug)
+    model_archiver_args = {
+        "model_name": dl_model.model_name,
+        "version": dl_model.repo_info.repo_version,
+        "handler": handler,
+        "extra_files": extra_files,
+        "export_path": export_path,
+    }
 
-    debug and print(f"## In directory: {os.getcwd()} | Executing command: {cmd}\n")
+    cmd = model_archiver_command_builder(
+        model_archiver_args=model_archiver_args, debug=debug
+    )
+
+    if debug:
+        print(f"## In directory: {os.getcwd()} | Executing command: {cmd}\n")
 
     try:
         subprocess.check_call(cmd, shell=True)
-        debug and print(f"## Model {dl_model.model_name} with version {dl_model.repo_version} is generated.\n")
+        if debug:
+            print(
+                f"## Model {dl_model.model_name} with version "
+                f"{dl_model.repo_info.repo_version} is generated.\n"
+            )
     except subprocess.CalledProcessError as exc:
         print("## Creation failed !\n")
-        debug and print("## {} creation failed !, error: {}\n".format(dl_model.model_name, exc))
+        if debug:
+            print(f"## {dl_model.model_name} creation failed !, error: {exc}\n")
         sys.exit(1)
 
     os.chdir(cwd)
 
 
-def model_archiver_command_builder(model_name=None, version=None, model_file=None,
-                                   handler=None, extra_files=None,
-                                   runtime=None, archive_format=None,
-                                   requirements_file=None, export_path=None,
-                                   force=True, debug=False):
+def model_archiver_command_builder(model_archiver_args, debug=False):
+    """
+    model_archiver_command_builder
+    This function makes the Torch Model Archiver command using model_archiver_args parameter.
+
+    Args:
+        model_archiver_args (dict): Contains
+        debug (bool, optional): Flag to print debug statements. Defaults to False.
+
+    Returns:
+        str: Torch Model Achiver command
+    """
     cmd = "torch-model-archiver"
-    if model_name:
-        cmd += f" --model-name {model_name}"
-    if version:
-        cmd += f" --version {version}"
-    if model_file:
-        cmd += f" --model-file {model_file}"
-    if handler:
-        cmd += f" --handler {handler}"
-    if extra_files:
-        cmd += f" --extra-files \"{extra_files}\""
-    if runtime:
-        cmd += f" --runtime {runtime}"
-    if archive_format:
-        cmd += f" --archive-format {archive_format}"
-    if requirements_file:
-        cmd += f" --requirements-file {requirements_file}"
-    if export_path:
-        cmd += f" --export-path {export_path}"
-    if force:
-        cmd += " --force"
+    if model_archiver_args["model_name"]:
+        cmd += f" --model-name {model_archiver_args['model_name']}"
+    if model_archiver_args["version"]:
+        cmd += f" --version {model_archiver_args['version']}"
+    if model_archiver_args["handler"]:
+        cmd += f" --handler {model_archiver_args['handler']}"
+    if model_archiver_args["extra_files"]:
+        cmd += f" --extra-files \"{model_archiver_args['extra_files']}\""
+    if model_archiver_args["export_path"]:
+        cmd += f" --export-path {model_archiver_args['export_path']}"
+    cmd += " --force"
     print("\n## Generating mar file, will take few mins.\n")
-    debug and print(cmd)
+    if debug:
+        print(cmd)
     return cmd
