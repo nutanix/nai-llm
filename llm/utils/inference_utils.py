@@ -23,24 +23,6 @@ def error_msg_print():
     ts.stop_torchserve()
 
 
-def get_inputs_from_folder(input_path):
-    """
-    get_inputs_from_folder
-    This funtion to reads and returns input filenames from a given input path.
-
-    Args:
-        input_path (str): Path to input directory.
-
-    Returns:
-        list(str): String list containing all paths of files in input folder.
-    """
-    return (
-        [os.path.join(input_path, item) for item in os.listdir(input_path)]
-        if input_path
-        else []
-    )
-
-
 def set_compute_setting(gpus):
     """
     set_compute_setting
@@ -183,7 +165,10 @@ def get_inference_internal(data_model, debug):
     register_model(data_model.model_name, data_model.mar_filepath, data_model.gpus)
 
     if data_model.input_path:
-        inputs = get_inputs_from_folder(data_model.input_path)
+        # get relative paths of files
+        inputs = su.get_all_files_in_directory(data_model.input_path)
+        # prefix with model path
+        inputs = [os.path.join(data_model.input_path, file) for file in inputs]
         inference_model = {
             "name": data_model.model_name,
             "inputs": inputs,

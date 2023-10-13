@@ -98,7 +98,7 @@ def stop_torchserve(wait_for=10):
         bool: True for successful Torchserve stop and False otherwise.
     """
     try:
-        requests.get("http://localhost:8080/ping")
+        requests.get("http://localhost:8080/ping", timeout=wait_for)
     except requests.exceptions.RequestException:
         return False
 
@@ -226,7 +226,7 @@ def register_model(
     )
 
     url = f"{protocol}://{host}:{port}/models"
-    response = requests.post(url, params=params, verify=False)
+    response = requests.post(url, params=params, verify=False, timeout=response_timeout)
     return response
 
 
@@ -259,7 +259,7 @@ def run_inference(
     return response
 
 
-def unregister_model(model_name, protocol="http", host="localhost", port="8081"):
+def unregister_model(model_name, protocol="http", host="localhost", port="8081", timeout=200):
     """
     unregister_model
     This function sends request to unregister model on Torchserve.
@@ -275,5 +275,5 @@ def unregister_model(model_name, protocol="http", host="localhost", port="8081")
     """
     print(f"## Unregistering {model_name} model \n")
     url = f"{protocol}://{host}:{port}/models/{model_name}"
-    response = requests.delete(url, verify=False)
+    response = requests.delete(url, verify=False, timeout=timeout)
     return response

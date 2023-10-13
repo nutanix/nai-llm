@@ -7,8 +7,8 @@ Attributes:
     dirpath (str): Stores parent directory of module
 """
 import os
-from shell_utils import rm_dir
-import tsutils as ts
+from utils.shell_utils import rm_dir
+import utils.tsutils as ts
 
 ts.stop_torchserve()
 dirpath = os.path.dirname(__file__)
