@@ -15,6 +15,7 @@ from collections import Counter
 import dataclasses
 import re
 import huggingface_hub as hfh
+from huggingface_hub.utils import HfHubHTTPError
 from utils.marsgen import get_mar_name, generate_mars
 from utils.system_utils import (
     check_if_path_exists,
@@ -310,11 +311,7 @@ def read_config_for_download(dl_model):
                         models[dl_model.model_name]["handler"],
                     )
 
-            except (
-                KeyError,
-                hfh.utils.RepositoryNotFoundError,
-                hfh.utils.RevisionNotFoundError,
-            ):
+            except (KeyError, HfHubHTTPError):
                 print(
                     "## Error: Please check either repo_id, repo_version"
                     " or HuggingFace ID is not correct\n"
