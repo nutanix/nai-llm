@@ -1,5 +1,6 @@
 """
-This module stores the dataclass InferenceDataModel and it's related functions.
+This module stores the dataclasses InferenceDataModel, TorchserveStartData
+and function prepare_settings to set the InferenceDataModel's ts_data.
 """
 import os
 import dataclasses
@@ -69,7 +70,7 @@ def set_data_model(args):
     return data_model
 
 
-def prepare_settings(data_model):
+def prepare_settings(data_model: InferenceDataModel):
     """
     This function sets ts_data attribute of InferenceDataModel class,
     sets environment variables LOG_LOCATION and METRICS_LOCATION and makes gen folder.

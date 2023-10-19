@@ -161,7 +161,7 @@ curl -X DELETE "http://{inference_server_endpoint}:{management_port}/models/{mod
 ### Stop Torchserve and Cleanup
 If keep alive flag was set in the bash script, then you can run the following command to stop the server and clean up temporary files
 ```
-python3 llm/utils/cleanup.py
+python3 llm/cleanup.py
 ```
 
 ## Model Version Support

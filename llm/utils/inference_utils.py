@@ -8,7 +8,11 @@ import torch
 import requests
 import utils.tsutils as ts
 import utils.system_utils as su
-import utils.inference_data_model as idm
+from utils.inference_data_model import (
+    InferenceDataModel,
+    TorchserveStartData,
+    prepare_settings,
+)
 
 
 def error_msg_print():
@@ -45,7 +49,7 @@ def ts_health_check():
     os.system("curl localhost:8080/ping")
 
 
-def start_ts_server(ts_data, gpus, debug):
+def start_ts_server(ts_data: TorchserveStartData, gpus, debug):
     """
     This function starts Torchserve by calling start_torchserve from tsutils
     and throws error if it doesn't start.
@@ -140,7 +144,7 @@ def validate_inference_model(models_to_validate, debug):
         print(f"## {model_name} Handler is stable. \n")
 
 
-def get_inference_internal(data_model, debug):
+def get_inference_internal(data_model: InferenceDataModel, debug):
     """
     This function starts Torchserve, runs health check of server, registers model,
     and runs inference on input folder path.
@@ -170,7 +174,7 @@ def get_inference_internal(data_model, debug):
             validate_inference_model(models_to_validate, debug)
 
 
-def get_inference_with_mar(data_model, debug=False):
+def get_inference_with_mar(data_model: InferenceDataModel, debug=False):
     """
     This function sets ts_data in data_model (InferenceDataModel), and calls get_inference_internal,
     and catches any execptions caused by sending requests.
@@ -180,7 +184,7 @@ def get_inference_with_mar(data_model, debug=False):
         debug (bool, optional): Flag to print debug statements. Defaults to False.
     """
     try:
-        data_model = idm.prepare_settings(data_model)
+        data_model = prepare_settings(data_model)
         get_inference_internal(data_model, debug=debug)
     except (KeyError, requests.exceptions.RequestException):
         error_msg_print()

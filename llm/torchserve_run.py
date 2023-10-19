@@ -7,9 +7,8 @@ Attributes:
 """
 import os
 import argparse
-import sys
 import json
-from utils.inference_utils import get_inference_with_mar, error_msg_print
+from utils.inference_utils import get_inference_with_mar
 from utils.shell_utils import rm_dir
 import utils.tsutils as ts
 from utils.system_utils import check_if_path_exists
@@ -36,15 +35,15 @@ def read_config_for_inference(params):
     """
     with open(MODEL_CONFIG_PATH, encoding="UTF-8") as config:
         models = json.loads(config.read())
+        params.is_custom_model = False
         if params.model_name not in models:
             print(
-                "## Please check your model name, it should be one of the following : "
+                f"## Using custom MAR file : {params.model_name}.mar\n\n"
+                f"WARNING: This model has not been validated on any GPUs\n\n"
             )
-            print(list(models.keys()))
-            error_msg_print()
-            sys.exit(1)
+            params.is_custom_model = True
 
-        if params.gpus > 0:
+        if not params.is_custom_model and params.gpus > 0:
             gpu_type_list = models[params.model_name]["gpu_type"]
             gpu_type = remove_suffix_if_starts_with(params.gpu_type, "NVIDIA")
             if gpu_type not in gpu_type_list:
@@ -54,12 +53,16 @@ def read_config_for_inference(params):
                 for gpu in gpu_type_list:
                     print(gpu)
 
-        if models[params.model_name]["repo_version"] and not params.repo_version:
+        if (
+            not params.is_custom_model
+            and models[params.model_name]["repo_version"]
+            and not params.repo_version
+        ):
             params.repo_version = models[params.model_name]["repo_version"]
     return params
 
 
-def set_mar_filepath(model_store, model_name, repo_version):
+def set_mar_filepath(model_store, model_name, repo_version, is_custom_model):
     """
     Funtion that creates the MAR file path given the model store, model name and repo version.
     The name of the MAR file is returned from get_mar_name from marsgen.
@@ -72,7 +75,8 @@ def set_mar_filepath(model_store, model_name, repo_version):
     Returns:
         str: Path to MAR file.
     """
-    mar_name = f"{get_mar_name(model_name, repo_version)}.mar"
+
+    mar_name = f"{get_mar_name(model_name, repo_version, is_custom_model)}.mar"
     return os.path.join(model_store, mar_name)
 
 
@@ -102,7 +106,10 @@ def run_inference(params):
     check_if_path_exists(params.model_store, "Model Store", is_dir=True)
 
     params.mar = set_mar_filepath(
-        params.model_store, params.model_name, params.repo_version
+        params.model_store,
+        params.model_name,
+        params.repo_version,
+        params.is_custom_model,
     )
     check_if_path_exists(params.mar, "MAR file", is_dir=False)
 

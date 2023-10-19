@@ -11,8 +11,8 @@ import argparse
 import json
 import sys
 from collections import Counter
-import dataclasses
 import re
+import uuid
 import huggingface_hub as hfh
 from huggingface_hub.utils import HfHubHTTPError
 from utils.marsgen import get_mar_name, generate_mars
@@ -23,6 +23,7 @@ from utils.system_utils import (
     get_all_files_in_directory,
 )
 from utils.shell_utils import mv_file, rm_dir
+from utils.generate_data_model import GenerateDataModel, set_values
 
 FILE_EXTENSIONS_TO_IGNORE = [
     ".safetensors",
@@ -35,91 +36,6 @@ FILE_EXTENSIONS_TO_IGNORE = [
 ]
 
 MODEL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "model_config.json")
-
-
-@dataclasses.dataclass
-class MarUtils:
-    """
-    This dataclass that stores information regarding MAR file generation.
-
-    Attributes:
-        mar_output (str): Path of directory to export MAR file.
-        mar_name (str): Name of MAR file.
-        model_path (str): Path of model files directory.
-        handler_path (str): Path of handler file of Torchserve.
-    """
-
-    mar_output = str()
-    mar_name = str()
-    model_path = str()
-    handler_path = str()
-
-
-@dataclasses.dataclass
-class RepoInfo:
-    """
-    This dataclass stores information regarding the HuggingFace model repository.
-
-    Attributes:
-        repo_id (str): Repository ID of model in HuggingFace.
-        repo_version (str): Commit ID of model's repo from HuggingFace repository.
-        hf_token (str): Your HuggingFace token. Needed to download and verify LLAMA(2) models.
-    """
-
-    repo_id = str()
-    repo_version = str()
-    hf_token = str()
-
-
-@dataclasses.dataclass
-class DownloadDataModel:
-    """
-    This dataclass stores information regarding model download and MAR file generation.
-
-    Attributes:
-        model_name (str): Name of the model.
-        skip_download (bool): Set to skip download model.
-        mar_utils (MarUtils): Contains data regarding MAR file generation.
-        repo_info (RepoInfo): Contains data regarding HuggingFace model repository.
-        debug (bool): Flag to print debug statements.
-    """
-
-    model_name = str()
-    skip_download = bool()
-    mar_utils = MarUtils()
-    repo_info = RepoInfo()
-    debug = bool()
-
-
-def set_values(params):
-    """
-    This function sets values for the DownloadDataModel object based on the command-line arguments.
-
-    Args:
-        params: An argparse.Namespace object containing command-line arguments.
-
-    Returns:
-        DownloadDataModel: An instance of the DownloadDataModel dataclass
-    """
-    dl_model = DownloadDataModel()
-    dl_model.model_name = params.model_name
-    dl_model.skip_download = params.no_download
-    dl_model.debug = params.debug
-
-    dl_model.repo_info.hf_token = params.hf_token
-    dl_model.repo_info.repo_version = params.repo_version
-
-    dl_model.mar_utils.handler_path = params.handler_path
-    dl_model.mar_utils.model_path = params.model_path
-    dl_model.mar_utils.mar_output = params.mar_output
-
-    read_config_for_download(dl_model)
-
-    # Sets MAR file name name as <model_name>_<first_n_chars_of_repo_version>
-    dl_model.mar_utils.mar_name = get_mar_name(
-        dl_model.model_name, dl_model.repo_info.repo_version
-    )
-    return dl_model
 
 
 def get_ignore_pattern_list(extension_list):
@@ -173,45 +89,45 @@ def filter_files_by_extension(filenames, extensions_to_remove):
     return filtered_filenames
 
 
-def check_if_mar_exists(dl_model):
+def check_if_mar_exists(gen_model: GenerateDataModel):
     """
     This function checks if MAR file of a model already exists and skips
     generation if the MAR file already exists
 
     Args:
-        dl_model (DownloadDataModel): An instance of the DownloadDataModel dataclass
+        gen_model (GenerateDataModel): An instance of the GenerateDataModel dataclass
     """
     check_path = os.path.join(
-        dl_model.mar_utils.mar_output, f"{dl_model.mar_utils.mar_name}.mar"
+        gen_model.mar_utils.mar_output, f"{gen_model.mar_utils.mar_name}.mar"
     )
     if os.path.exists(check_path):
         print(
             f"## Skipping MAR file generation as it already exists\n"
-            f" Model name: {dl_model.model_name}\n Repository Version: "
-            f"{dl_model.repo_info.repo_version}\n"
+            f" Model name: {gen_model.model_name}\n Repository Version: "
+            f"{gen_model.repo_info.repo_version}\n"
         )
         sys.exit(1)
 
 
-def check_if_model_files_exist(dl_model):
+def check_if_model_files_exist(gen_model: GenerateDataModel):
     """
     This function compares the list of files in the downloaded model directory with the
     list of files in the HuggingFace repository. It takes into account any files to
     ignore based on predefined extensions.
 
     Args:
-        dl_model (DownloadDataModel): An instance of the DownloadDataModel dataclass
+        gen_model (GenerateDataModel): An instance of the GenerateDataModel dataclass
 
     Returns:
         bool: True if the downloaded model files match the expected
               repository files, False otherwise.
     """
-    extra_files_list = get_all_files_in_directory(dl_model.mar_utils.model_path)
+    extra_files_list = get_all_files_in_directory(gen_model.mar_utils.model_path)
     hf_api = hfh.HfApi()
     repo_files = hf_api.list_repo_files(
-        repo_id=dl_model.repo_info.repo_id,
-        revision=dl_model.repo_info.repo_version,
-        token=dl_model.repo_info.hf_token,
+        repo_id=gen_model.repo_info.repo_id,
+        revision=gen_model.repo_info.repo_version,
+        token=gen_model.repo_info.hf_token,
     )
     repo_files = filter_files_by_extension(repo_files, FILE_EXTENSIONS_TO_IGNORE)
     return compare_lists(extra_files_list, repo_files)
@@ -229,36 +145,36 @@ def create_tmp_model_store(mar_output, mar_name):
     Returns:
         str: Path of temporary directory.
     """
-    dir_name = f"tmp_{mar_name}"
+    rand_uuid = str(uuid.uuid4())[-5:]  # select last 5 digits of uuid
+    dir_name = f"tmp_{mar_name}_{rand_uuid}"
     tmp_dir = os.path.join(mar_output, dir_name)
-    rm_dir(tmp_dir)  # delete existing tmp if it exists
     create_folder_if_not_exists(tmp_dir)
     return tmp_dir
 
 
-def move_mar(dl_model, tmp_dir):
+def move_mar(gen_model: GenerateDataModel, tmp_dir):
     """
     This funtion moves MAR file from the temporary directory to model store.
 
     Args:
-        dl_model (DownloadDataModel): An instance of the DownloadDataModel dataclass
+        gen_model (GenerateDataModel): An instance of the GenerateDataModel dataclass
         tmp_dir (str): Path of temporary directory.
     """
-    old_filename = f"{dl_model.model_name}.mar"
-    new_filename = f"{dl_model.mar_utils.mar_name}.mar"
+    old_filename = f"{gen_model.model_name}.mar"
+    new_filename = f"{gen_model.mar_utils.mar_name}.mar"
     src = os.path.join(tmp_dir, old_filename)
-    dst = os.path.join(dl_model.mar_utils.mar_output, new_filename)
+    dst = os.path.join(gen_model.mar_utils.mar_output, new_filename)
     check_if_path_exists(src, "Generated mar file is missing", is_dir=False)
     mv_file(src, dst)
 
 
-def read_config_for_download(dl_model):
+def read_config_for_download(gen_model: GenerateDataModel):
     """
     This function reads repo id, version and handler name from
-    model_config.json and sets values for the DownloadDataModel object.
+    model_config.json and sets values for the GenerateDataModel object.
 
     Args:
-        dl_model (DownloadDataModel): An instance of the DownloadDataModel dataclass
+        gen_model (GenerateDataModel): An instance of the GenerateDataModel dataclass
 
     Raises:
         sys.exit(1): If model name, repo_id or repo_version is not valid, the
@@ -267,19 +183,20 @@ def read_config_for_download(dl_model):
     check_if_path_exists(MODEL_CONFIG_PATH, "Model Config", is_dir=False)
     with open(MODEL_CONFIG_PATH, encoding="UTF-8") as config:
         models = json.loads(config.read())
-        if dl_model.model_name in models:
+        if gen_model.model_name in models:
+            gen_model.is_custom_model = False
             try:
                 # Read and validate the repo_id and repo_version
-                dl_model.repo_info.repo_id = models[dl_model.model_name]["repo_id"]
-                if not dl_model.repo_info.repo_version:
-                    dl_model.repo_info.repo_version = models[dl_model.model_name][
+                gen_model.repo_info.repo_id = models[gen_model.model_name]["repo_id"]
+                if not gen_model.repo_info.repo_version:
+                    gen_model.repo_info.repo_version = models[gen_model.model_name][
                         "repo_version"
                     ]
 
                 # Make sure there is HF hub token for LLAMA(2)
                 if (
-                    dl_model.repo_info.repo_id.startswith("meta-llama")
-                    and dl_model.repo_info.hf_token is None
+                    gen_model.repo_info.repo_id.startswith("meta-llama")
+                    and gen_model.repo_info.hf_token is None
                 ):
                     print(
                         "## Error: HuggingFace Hub token is required for llama download."
@@ -291,16 +208,16 @@ def read_config_for_download(dl_model):
                 # Validate downloaded files
                 hf_api = hfh.HfApi()
                 hf_api.list_repo_commits(
-                    repo_id=dl_model.repo_info.repo_id,
-                    revision=dl_model.repo_info.repo_version,
-                    token=dl_model.repo_info.hf_token,
+                    repo_id=gen_model.repo_info.repo_id,
+                    revision=gen_model.repo_info.repo_version,
+                    token=gen_model.repo_info.hf_token,
                 )
 
                 # Read handler file name
-                if not dl_model.mar_utils.handler_path:
-                    dl_model.mar_utils.handler_path = os.path.join(
+                if not gen_model.mar_utils.handler_path:
+                    gen_model.mar_utils.handler_path = os.path.join(
                         os.path.dirname(__file__),
-                        models[dl_model.model_name]["handler"],
+                        models[gen_model.model_name]["handler"],
                     )
 
             except (KeyError, HfHubHTTPError):
@@ -309,47 +226,76 @@ def read_config_for_download(dl_model):
                     " or HuggingFace ID is not correct\n"
                 )
                 sys.exit(1)
-        else:
+        else:  # Custom model case
+            if not gen_model.skip_download:
+                print(
+                    "## Please check your model name,"
+                    " it should be one of the following : "
+                )
+                print(list(models.keys()))
+                print(
+                    "\n## If you want to use custom model files,"
+                    " use the '--no_download' argument"
+                )
+                sys.exit(1)
+
+            if not gen_model.mar_utils.handler_path:
+                print(
+                    "## Please pass the absolute path of the "
+                    "handler using the '--handler' argument"
+                )
+                sys.exit(1)
+
+            if not gen_model.repo_info.repo_version:
+                gen_model.repo_info.repo_version = "1.0"
+
+            gen_model.is_custom_model = True
             print(
-                "## Please check your model name, it should be one of the following : "
+                f"\n## Generating MAR file for "
+                f"custom model files: {gen_model.model_name}"
             )
-            print(list(models.keys()))
-            sys.exit(1)
+
+    gen_model.mar_utils.mar_name = get_mar_name(
+        gen_model.model_name,
+        gen_model.repo_info.repo_version,
+        gen_model.is_custom_model,
+    )
+    return gen_model
 
 
-def run_download(dl_model):
+def run_download(gen_model: GenerateDataModel):
     """
     This function checks if the given model path directory is empty and then
     downloads the given version's model files at that path.
 
     Args:
-        dl_model (DownloadDataModel): An instance of the DownloadDataModel dataclass
+        gen_model (GenerateDataModel): An instance of the GenerateDataModel dataclass
 
     Returns:
-        DownloadDataModel: An instance of the DownloadDataModel class.
+        GenerateDataModel: An instance of the GenerateDataModel class.
     """
-    if not check_if_folder_empty(dl_model.mar_utils.model_path):
+    if not check_if_folder_empty(gen_model.mar_utils.model_path):
         print("## Make sure the path provided to download model files is empty\n")
         sys.exit(1)
 
     print(
-        f"\n## Starting model files download from {dl_model.repo_info.repo_id}"
-        f" with version {dl_model.repo_info.repo_version}\n"
+        f"\n## Starting model files download from {gen_model.repo_info.repo_id}"
+        f" with version {gen_model.repo_info.repo_version}\n"
     )
 
     hfh.snapshot_download(
-        repo_id=dl_model.repo_info.repo_id,
-        revision=dl_model.repo_info.repo_version,
-        local_dir=dl_model.mar_utils.model_path,
+        repo_id=gen_model.repo_info.repo_id,
+        revision=gen_model.repo_info.repo_version,
+        local_dir=gen_model.mar_utils.model_path,
         local_dir_use_symlinks=False,
-        token=dl_model.repo_info.hf_token,
+        token=gen_model.repo_info.hf_token,
         ignore_patterns=get_ignore_pattern_list(FILE_EXTENSIONS_TO_IGNORE),
     )
     print("## Successfully downloaded model_files\n")
-    return dl_model
+    return gen_model
 
 
-def create_mar(dl_model):
+def create_mar(gen_model: GenerateDataModel):
     """
     This function checks if the Model Archive (MAR) file for the downloaded
     model exists in the specified model path otherwise generates the MAR file.
@@ -357,51 +303,53 @@ def create_mar(dl_model):
     to avoid conflicts.
 
     Args:
-        dl_model (DownloadDataModel): An instance of the DownloadDataModel dataclass
+        gen_model (GenerateDataModel): An instance of the GenerateDataModel dataclass
     """
-    if not check_if_model_files_exist(dl_model):
+    if not gen_model.is_custom_model and not check_if_model_files_exist(gen_model):
         print("## Model files do not match HuggingFace repository files")
         sys.exit(1)
 
     # Creates a temporary directory with the mar_name inside model_store
     tmp_dir = create_tmp_model_store(
-        dl_model.mar_utils.mar_output, dl_model.mar_utils.mar_name
+        gen_model.mar_utils.mar_output, gen_model.mar_utils.mar_name
     )
 
     generate_mars(
-        dl_model=dl_model,
+        gen_model=gen_model,
         mar_config=MODEL_CONFIG_PATH,
         model_store_dir=tmp_dir,
-        debug=dl_model.debug,
+        debug=gen_model.debug,
     )
 
     # Move MAR file to model_store
-    move_mar(dl_model, tmp_dir)
+    move_mar(gen_model, tmp_dir)
     # Delete temporary folder
     rm_dir(tmp_dir)
     print(
-        f"\n## Mar file for {dl_model.model_name}"
-        f" with version {dl_model.repo_info.repo_version} is generated!\n"
+        f"\n## Mar file for {gen_model.model_name}"
+        f" with version {gen_model.repo_info.repo_version} is generated!\n"
     )
 
 
 def run_script(params):
     """
-    This function validates input parameters and downloads model files,
+    This function validates input parameters, downloads model files and
     creates model archive file (MAR file) for the given model.
 
     Args:
         params (Namespace): An argparse.Namespace object containing command-line arguments.
                 These are the necessary parameters and configurations for the script.
     """
-    dl_model = set_values(params)
-    check_if_path_exists(dl_model.mar_utils.model_path, "model_path", is_dir=True)
-    check_if_path_exists(dl_model.mar_utils.mar_output, "mar_output", is_dir=True)
-    check_if_mar_exists(dl_model)
+    gen_model = set_values(params)
+    gen_model = read_config_for_download(gen_model)
 
-    if not dl_model.skip_download:
-        dl_model = run_download(dl_model)
-    create_mar(dl_model)
+    check_if_path_exists(gen_model.mar_utils.model_path, "model_path", is_dir=True)
+    check_if_path_exists(gen_model.mar_utils.mar_output, "mar_output", is_dir=True)
+    check_if_mar_exists(gen_model)
+
+    if not gen_model.skip_download:
+        gen_model = run_download(gen_model)
+    create_mar(gen_model)
 
 
 if __name__ == "__main__":

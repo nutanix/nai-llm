@@ -60,25 +60,25 @@
 		</RollingFile>
 	</Appenders>
 	<Loggers>
-		<Logger name="ACCESS_LOG" level="off">
+		<Logger name="ACCESS_LOG" level="all">
 			<AppenderRef ref="access_log"/>
 		</Logger>
-		<Logger name="io.netty" level="off" />
-		<Logger name="MODEL_LOG" level="off">
+		<Logger name="io.netty" level="all" />
+		<Logger name="MODEL_LOG" level="all">
 			<AppenderRef ref="model_log"/>
 		</Logger>
-		<Logger name="MODEL_METRICS" level="off">
+		<Logger name="MODEL_METRICS" level="all">
 			<AppenderRef ref="model_metrics"/>
 		</Logger>
-		<Logger name="org.apache" level="off" />
-		<Logger name="org.pytorch.serve" level="off">
+		<Logger name="org.apache" level="all" />
+		<Logger name="org.pytorch.serve" level="all">
 			<AppenderRef ref="ts_log"/>
 		</Logger>
-		<Logger name="TS_METRICS" level="off">
+		<Logger name="TS_METRICS" level="all">
 			<AppenderRef ref="ts_metrics"/>
 		</Logger>
-		<Root level="off">
-			<AppenderRef ref="STDOUT" level="off"/>
+		<Root level="all">
+			<AppenderRef ref="STDOUT" level="all"/>
 			<AppenderRef ref="ts_log"/>
 		</Root>
 	</Loggers>

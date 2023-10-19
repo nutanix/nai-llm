@@ -12,6 +12,7 @@ import platform
 import time
 import json
 import requests
+from utils.inference_data_model import TorchserveStartData
 
 torchserve_command = {
     "Windows": "torchserve.exe",
@@ -26,7 +27,7 @@ torch_model_archiver_command = {
 }
 
 
-def generate_ts_start_cmd(ncs, ts_data, gpus, debug):
+def generate_ts_start_cmd(ncs, ts_data: TorchserveStartData, gpus, debug):
     """
     This function generates the Torchserve start command.
 
@@ -56,7 +57,9 @@ def generate_ts_start_cmd(ncs, ts_data, gpus, debug):
     return cmd
 
 
-def start_torchserve(ts_data, ncs=True, wait_for=10, gpus=0, debug=False):
+def start_torchserve(
+    ts_data: TorchserveStartData, ncs=True, wait_for=10, gpus=0, debug=False
+):
     """
     This function calls generate_ts_start_cmd function to get the Torchserve start command
     and runs the same to start Torchserve.
