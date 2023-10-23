@@ -9,7 +9,6 @@ Attributes:
 """
 import os
 import platform
-from sys import exception
 import time
 import json
 import requests
@@ -116,6 +115,7 @@ def stop_torchserve(wait_for=10):
     print("## TorchServe failed to stop ! \n")
     return False
 
+
 def set_config_properties(data_model: InferenceDataModel):
     """
     This function creates a configuration file for the model and sets certain parameters.
@@ -131,7 +131,9 @@ def set_config_properties(data_model: InferenceDataModel):
     dir_path = os.path.dirname(__file__)
     dst_config_path = os.path.join(dir_path, data_model.gen_folder, "config.properties")
     copy_file(template_config_path, dst_config_path)
-    check_if_path_exists(dst_config_path, "config.properties file in gen folder", is_dir=False)
+    check_if_path_exists(
+        dst_config_path, "config.properties file in gen folder", is_dir=False
+    )
 
     (
         initial_workers,
@@ -159,7 +161,7 @@ def set_config_properties(data_model: InferenceDataModel):
     ]
     with open(dst_config_path, "a", encoding="utf-8") as config_file:
         config_file.writelines(config_info)
-    
+
     data_model.ts_data.ts_config_file = dst_config_path
 
 

@@ -2,8 +2,6 @@
 This module contains utilities to start and manage Torchserve server.
 """
 import os
-from pickle import FALSE
-from pyexpat import model
 import sys
 import time
 import traceback
@@ -18,6 +16,7 @@ from utils.inference_data_model import (
 )
 
 PATH_TO_SAMPLE = "../../data/qa/sample_text1.txt"
+
 
 def error_msg_print():
     """
@@ -70,8 +69,7 @@ def ts_health_check(model_name, model_timeout=1200):
       deploy_name (str): The name of the server where the model is registered.
       model_timeout (int): Maximum amount of time to wait for a response from server.
     Raises:
-        sys.exit(1): If health check fails after multiple retries for model, the
-                     function will terminate the program with an exit code of 1.
+        requests.exceptions.RequestException: In case of request errors.
     """
     model_input = os.path.join(os.path.dirname(__file__), PATH_TO_SAMPLE)
     su.check_if_path_exists(model_input, "health check input", is_dir=False)
@@ -80,9 +78,7 @@ def ts_health_check(model_name, model_timeout=1200):
     success = False
     while not success and retry_count * sleep_time < model_timeout:
         try:
-            success = execute_inference_on_inputs(
-                [model_input], model_name, retry=True
-            )
+            success = execute_inference_on_inputs([model_input], model_name, retry=True)
         except requests.exceptions.RequestException:
             pass
         if not success:
@@ -115,13 +111,13 @@ def execute_inference_on_inputs(model_inputs, model_name, retry=False):
                     f"## Successfully ran inference on {model_name} model."
                     f"\n\n Output - {response.text}\n\n"
                 )
-            is_success=True
+            is_success = True
         else:
             if not retry:
                 print(f"## Failed to run inference on {model_name} model \n")
                 error_msg_print()
                 sys.exit(1)
-            is_success=False
+            is_success = False
     return is_success
 
 
@@ -150,11 +146,14 @@ def validate_inference_model(models_to_validate, debug):
 def get_inference(data_model: InferenceDataModel, debug):
     """
     This function starts Torchserve, runs health check of server, registers model,
-    and runs inference on input folder path. It catches Key
+    and runs inference on input folder path. It catches KeyError and HTTPError exceptions
 
     Args:
         data_model (InferenceDataModel): Dataclass containing information for running Torchserve.
         debug (bool): Flag to print debug statements.
+    Raises:
+        KeyError: In case of reading JSON files.
+        requests.exceptions.RequestException: In case of request errors.
     """
     data_model = prepare_settings(data_model)
     set_compute_setting(data_model.gpus)

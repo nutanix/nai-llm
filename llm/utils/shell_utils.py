@@ -64,5 +64,5 @@ def copy_file(source_file, destination_file):
     """
     try:
         shutil.copy(source_file, destination_file)
-    except OSError as e:
-        print(f"## Error: {e}")
+    except OSError as exp:
+        print(f"## Error: {exp}")
