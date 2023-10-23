@@ -8,7 +8,7 @@ Attributes:
 import os
 import argparse
 import json
-from utils.inference_utils import get_inference_with_mar
+from utils.inference_utils import get_inference
 from utils.shell_utils import rm_dir
 import utils.tsutils as ts
 from utils.system_utils import check_if_path_exists
@@ -71,6 +71,7 @@ def set_mar_filepath(model_store, model_name, repo_version, is_custom_model):
         model_store (str): Path to model store.
         model_name (str): Name of the model.
         repo_version (str): Commit ID of model's repo from HuggingFace repository.
+        is_custom_model (bool): Set to True for custom models.
 
     Returns:
         str: Path to MAR file.
@@ -90,7 +91,7 @@ def run_inference_with_mar(params):
                             These are the necessary parameters and configurations for the script.
     """
     data_model = idm.set_data_model(params)
-    get_inference_with_mar(data_model, params.debug_mode)
+    get_inference(data_model, params.debug_mode)
 
 
 def run_inference(params):

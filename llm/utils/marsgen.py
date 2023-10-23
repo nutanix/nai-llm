@@ -21,6 +21,7 @@ def get_mar_name(model_name, repo_version, is_custom_model=False):
     Args:
         model_name (str): Name of the model.
         repo_version (str): Commit ID of model's repo from HuggingFace repository.
+        is_custom_model (bool): Set to True for custom models.
 
     Returns:
         str: MAR file name.

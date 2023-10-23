@@ -2,7 +2,10 @@
 This module contains utilities to start and manage Torchserve server.
 """
 import os
+from pickle import FALSE
+from pyexpat import model
 import sys
+import time
 import traceback
 import torch
 import requests
@@ -14,6 +17,7 @@ from utils.inference_data_model import (
     prepare_settings,
 )
 
+PATH_TO_SAMPLE = "../../data/qa/sample_text1.txt"
 
 def error_msg_print():
     """
@@ -42,13 +46,6 @@ def set_compute_setting(gpus):
         gpus = 0
 
 
-def ts_health_check():
-    """
-    This function makes health check request to server.
-    """
-    os.system("curl localhost:8080/ping")
-
-
 def start_ts_server(ts_data: TorchserveStartData, gpus, debug):
     """
     This function starts Torchserve by calling start_torchserve from tsutils
@@ -65,7 +62,42 @@ def start_ts_server(ts_data: TorchserveStartData, gpus, debug):
         sys.exit(1)
 
 
-def execute_inference_on_inputs(model_inputs, model_name):
+def ts_health_check(model_name, model_timeout=1200):
+    """
+    This function checks if the model is registered or not.
+    Args:
+      model_name (str): The name of the model that is being registered.
+      deploy_name (str): The name of the server where the model is registered.
+      model_timeout (int): Maximum amount of time to wait for a response from server.
+    Raises:
+        sys.exit(1): If health check fails after multiple retries for model, the
+                     function will terminate the program with an exit code of 1.
+    """
+    model_input = os.path.join(os.path.dirname(__file__), PATH_TO_SAMPLE)
+    su.check_if_path_exists(model_input, "health check input", is_dir=False)
+    retry_count = 0
+    sleep_time = 10
+    success = False
+    while not success and retry_count * sleep_time < model_timeout:
+        try:
+            success = execute_inference_on_inputs(
+                [model_input], model_name, retry=True
+            )
+        except requests.exceptions.RequestException:
+            pass
+        if not success:
+            time.sleep(sleep_time)
+            retry_count += 1
+    if success:
+        print("## Health check passed. Model registered.\n")
+    else:
+        print(
+            f"## Failed health check after multiple retries for model - {model_name} \n"
+        )
+        sys.exit(1)
+
+
+def execute_inference_on_inputs(model_inputs, model_name, retry=False):
     """
     This function runs inference on given input data files and model name by
     calling run_inference from tsutils.
@@ -78,49 +110,19 @@ def execute_inference_on_inputs(model_inputs, model_name):
         model_inference_data = (model_name, data)
         response = ts.run_inference(model_inference_data)
         if response and response.status_code == 200:
-            print(
-                f"## Successfully ran inference on {model_name} model."
-                f"\n\n Output - {response.text}\n\n"
-            )
+            if not retry:
+                print(
+                    f"## Successfully ran inference on {model_name} model."
+                    f"\n\n Output - {response.text}\n\n"
+                )
+            is_success=True
         else:
-            print(f"## Failed to run inference on {model_name} model \n")
-            error_msg_print()
-            sys.exit(1)
-
-
-def register_model(model_name, input_mar, gpus):
-    """
-    This function registers model on Torchserve by calling register_model from tsutils.
-
-    Args:
-        model_name (str): Name of the model.
-        input_mar (str): Path to input data directory.
-        gpus (int): Number of GPUs.
-    """
-    model_register_data = (model_name, input_mar)
-    response = ts.register_model(model_register_data, gpus)
-    if response and response.status_code == 200:
-        print(f"## Successfully registered {model_name} model with torchserve \n")
-    else:
-        print("## Failed to register model with torchserve \n")
-        error_msg_print()
-        sys.exit(1)
-
-
-def unregister_model(model_name):
-    """
-    This function unregisters model on Torchserve by calling unregister_model from tsutils.
-
-    Args:
-        model_name (str): Name of the model.
-    """
-    response = ts.unregister_model(model_name)
-    if response and response.status_code == 200:
-        print(f"## Successfully unregistered {model_name} \n")
-    else:
-        print(f"## Failed to unregister {model_name} \n")
-        error_msg_print()
-        sys.exit(1)
+            if not retry:
+                print(f"## Failed to run inference on {model_name} model \n")
+                error_msg_print()
+                sys.exit(1)
+            is_success=False
+    return is_success
 
 
 def validate_inference_model(models_to_validate, debug):
@@ -137,6 +139,7 @@ def validate_inference_model(models_to_validate, debug):
         model_name = model["name"]
         model_inputs = model["inputs"]
 
+        print(f"## Running inference on {model_name} model \n")
         execute_inference_on_inputs(model_inputs, model_name)
 
         if debug:
@@ -144,48 +147,35 @@ def validate_inference_model(models_to_validate, debug):
         print(f"## {model_name} Handler is stable. \n")
 
 
-def get_inference_internal(data_model: InferenceDataModel, debug):
+def get_inference(data_model: InferenceDataModel, debug):
     """
     This function starts Torchserve, runs health check of server, registers model,
-    and runs inference on input folder path.
+    and runs inference on input folder path. It catches Key
 
     Args:
         data_model (InferenceDataModel): Dataclass containing information for running Torchserve.
         debug (bool): Flag to print debug statements.
     """
+    data_model = prepare_settings(data_model)
     set_compute_setting(data_model.gpus)
+    ts.set_config_properties(data_model)
+
     start_ts_server(ts_data=data_model.ts_data, gpus=data_model.gpus, debug=debug)
-    ts_health_check()
-    register_model(data_model.model_name, data_model.mar_filepath, data_model.gpus)
+    ts_health_check(data_model.model_name)
 
-    if data_model.input_path:
-        # get relative paths of files
-        inputs = su.get_all_files_in_directory(data_model.input_path)
-        # prefix with model path
-        inputs = [os.path.join(data_model.input_path, file) for file in inputs]
-        inference_model = {
-            "name": data_model.model_name,
-            "inputs": inputs,
-        }
-
-        models_to_validate = [inference_model]
-
-        if inputs:
-            validate_inference_model(models_to_validate, debug)
-
-
-def get_inference_with_mar(data_model: InferenceDataModel, debug=False):
-    """
-    This function sets ts_data in data_model (InferenceDataModel), and calls get_inference_internal,
-    and catches any execptions caused by sending requests.
-
-    Args:
-        data_model (InferenceDataModel): Dataclass containing information for running Torchserve.
-        debug (bool, optional): Flag to print debug statements. Defaults to False.
-    """
     try:
-        data_model = prepare_settings(data_model)
-        get_inference_internal(data_model, debug=debug)
+        if data_model.input_path:
+            # get relative paths of files
+            inputs = su.get_all_files_in_directory(data_model.input_path)
+            # prefix with model path
+            inputs = [os.path.join(data_model.input_path, file) for file in inputs]
+            inference_model = {
+                "name": data_model.model_name,
+                "inputs": inputs,
+            }
+            models_to_validate = [inference_model]
+            if inputs:
+                validate_inference_model(models_to_validate, debug)
     except (KeyError, requests.exceptions.RequestException):
         error_msg_print()
         if debug:

@@ -9,10 +9,14 @@ Attributes:
 """
 import os
 import platform
+from sys import exception
 import time
 import json
 import requests
-from utils.inference_data_model import TorchserveStartData
+from utils.inference_data_model import InferenceDataModel, TorchserveStartData
+from utils.system_utils import check_if_path_exists
+from utils.shell_utils import copy_file
+
 
 torchserve_command = {
     "Windows": "torchserve.exe",
@@ -79,8 +83,9 @@ def start_torchserve(
     print(cmd)
     status = os.system(cmd)
     if status == 0:
-        print("## Successfully started TorchServe \n")
+        print("\n## Successfully started TorchServe \n")
         time.sleep(wait_for)
+        print("## Registering model: this might take a while\n")
         return True
     print("## TorchServe failed to start ! Make sure it's not running already\n")
     return False
@@ -110,6 +115,52 @@ def stop_torchserve(wait_for=10):
         return True
     print("## TorchServe failed to stop ! \n")
     return False
+
+def set_config_properties(data_model: InferenceDataModel):
+    """
+    This function creates a configuration file for the model and sets certain parameters.
+    Args:
+        data_model (InferenceDataModel): An instance of the InferenceDataModel
+                                      class with relevant information.
+    Returns:
+        None
+    """
+    template_config_path = data_model.ts_data.ts_config_file
+    check_if_path_exists(template_config_path, "config.properties file", is_dir=False)
+
+    dir_path = os.path.dirname(__file__)
+    dst_config_path = os.path.join(dir_path, data_model.gen_folder, "config.properties")
+    copy_file(template_config_path, dst_config_path)
+    check_if_path_exists(dst_config_path, "config.properties file in gen folder", is_dir=False)
+
+    (
+        initial_workers,
+        batch_size,
+        max_batch_delay,
+        response_timeout,
+    ) = get_params_for_registration(data_model.model_name)
+
+    if (
+        initial_workers is None
+    ):  # setting the default value of workers to number of gpus
+        initial_workers = data_model.gpus
+
+    mar_name = os.path.basename(data_model.mar_filepath)
+
+    config_info = [
+        f'\nmodel_snapshot={{"name":"startup.cfg","modelCount":1,'
+        f'"models":{{"{data_model.model_name}":{{'
+        f'"{data_model.repo_version}":{{"defaultVersion":true,"marName":"{mar_name}",'
+        f'"minWorkers":{initial_workers or 1},'
+        f'"maxWorkers":{initial_workers or 1},'
+        f'"batchSize":{batch_size or 1},'
+        f'"maxBatchDelay":{max_batch_delay or 1},'
+        f'"responseTimeout":{response_timeout or 120}}}}}}}}}',
+    ]
+    with open(dst_config_path, "a", encoding="utf-8") as config_file:
+        config_file.writelines(config_info)
+    
+    data_model.ts_data.ts_config_file = dst_config_path
 
 
 def set_model_params(model_name):
@@ -183,49 +234,6 @@ def get_params_for_registration(model_name):
     return initial_workers, batch_size, max_batch_delay, response_timeout
 
 
-def register_model(
-    model_register_data, gpus, protocol="http", host="localhost", port="8081"
-):
-    """
-    This functions is used to register a model on Torchserve.
-
-    Args:
-        model_register_data (str, str): The model name and MAR file name
-        gpus (int): Number of GPUs
-        protocol (str, optional): Request protocol. Defaults to "http".
-        host (str, optional): Request host. Defaults to "localhost".
-        port (str, optional): Request Port. Defaults to "8081".
-
-    Returns:
-        requests.Response: Reponse of the registration request
-    """
-    model_name, marfile = model_register_data
-    print(f"\n## Registering {model_name} model, this might take a while \n")
-    (
-        initial_workers,
-        batch_size,
-        max_batch_delay,
-        response_timeout,
-    ) = get_params_for_registration(model_name)
-    if (
-        initial_workers is None
-    ):  # setting the default value of workers to number of gpus
-        initial_workers = gpus
-
-    params = (
-        ("url", marfile),
-        ("initial_workers", initial_workers or 1),
-        ("batch_size", batch_size or 1),
-        ("max_batch_delay", max_batch_delay or 200),
-        ("response_timeout", response_timeout or 2000),
-        ("synchronous", "true"),
-    )
-
-    url = f"{protocol}://{host}:{port}/models"
-    response = requests.post(url, params=params, verify=False, timeout=response_timeout)
-    return response
-
-
 def run_inference(
     model_inference_data, protocol="http", host="localhost", port="8080", timeout=120
 ):
@@ -244,32 +252,9 @@ def run_inference(
     """
     model_name, file_name = model_inference_data
 
-    print(f"## Running inference on {model_name} model \n")
     url = f"{protocol}://{host}:{port}/predictions/{model_name}"
     files = {}
     with open(file_name, "rb") as file:
         files["data"] = (file_name, file)
         response = requests.post(url, files=files, timeout=timeout)
-    print(response)
-    return response
-
-
-def unregister_model(
-    model_name, protocol="http", host="localhost", port="8081", timeout=200
-):
-    """
-    This function sends request to unregister model on Torchserve.
-
-    Args:
-        model_name (str): Name of the model
-        protocol (str, optional): Request protocol. Defaults to "http".
-        host (str, optional): Request host. Defaults to "localhost".
-        port (str, optional): Request Port. Defaults to "8081".
-
-    Returns:
-        requests.Response: Reponse of the unregister request
-    """
-    print(f"## Unregistering {model_name} model \n")
-    url = f"{protocol}://{host}:{port}/models/{model_name}"
-    response = requests.delete(url, verify=False, timeout=timeout)
     return response

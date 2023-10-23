@@ -28,7 +28,6 @@ done
 
 function create_execution_cmd()
 {
-    echo $model_name
     gen_folder="gen"
     
     cmd="python3 $wdir/torchserve_run.py"

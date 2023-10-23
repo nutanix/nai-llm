@@ -36,7 +36,7 @@ class LLMHandler(BaseHandler, ABC):
             This method loads the Hugging Face model and tokenizer based on
             the provided model name and model files present in MAR file.
         preprocess(text: str) -> Tensor:
-            This method tookenizes input text using the associated tokenizer.
+            This method tokenizes input text using the associated tokenizer.
             Args:
                 text (str): The input text to be tokenized.
             Returns:
