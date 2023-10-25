@@ -88,12 +88,7 @@ class LLMHandler(BaseHandler, ABC):
         properties = context.system_properties
         model_dir = properties.get("model_dir")
 
-        # torchserve sets gpu_id in round robin fashion for workers
-        if (
-            os.environ.get("TS_NUMBER_OF_GPU")
-            and torch.cuda.is_available()
-            and properties.get("gpu_id") is not None
-        ):
+        if torch.cuda.is_available() and properties.get("gpu_id") is not None:
             self.device = torch.device("cuda")
             self.device_map = "auto"
         else:

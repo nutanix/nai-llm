@@ -239,12 +239,14 @@ def read_config_for_download(gen_model: GenerateDataModel):
                 )
                 sys.exit(1)
 
-            if not gen_model.mar_utils.handler_path:
-                print(
-                    "## Please pass the absolute path of the "
-                    "handler using the '--handler' argument"
-                )
+            if check_if_folder_empty(gen_model.mar_utils.model_path):
+                print("## Error: The given model path folder is empty\n")
                 sys.exit(1)
+
+            if not gen_model.mar_utils.handler_path:
+                gen_model.mar_utils.handler_path = os.path.join(
+                    os.path.dirname(__file__), "handler.py"
+                )
 
             if not gen_model.repo_info.repo_version:
                 gen_model.repo_info.repo_version = "1.0"
@@ -350,6 +352,7 @@ def run_script(params):
     if not gen_model.skip_download:
         gen_model = run_download(gen_model)
     create_mar(gen_model)
+    return True
 
 
 if __name__ == "__main__":

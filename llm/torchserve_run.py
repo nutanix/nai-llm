@@ -43,7 +43,7 @@ def read_config_for_inference(params):
             )
             params.is_custom_model = True
 
-        if not params.is_custom_model and params.gpus > 0:
+        if not params.is_custom_model and params.gpu_type:
             gpu_type_list = models[params.model_name]["gpu_type"]
             gpu_type = remove_suffix_if_starts_with(params.gpu_type, "NVIDIA")
             if gpu_type not in gpu_type_list:
@@ -193,13 +193,6 @@ if __name__ == "__main__":
         default="",
         metavar="n",
         help="HuggingFace repository version",
-    )
-    parser.add_argument(
-        "--gpus",
-        type=int,
-        default=0,
-        metavar="g",
-        help="number of gpus to use for execution",
     )
     parser.add_argument(
         "--gpu_type",

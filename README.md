@@ -62,12 +62,11 @@ python3 llm/download.py --model_name llama2_7b --model_path /home/ubuntu/models/
 ### Start Torchserve and run inference
 Run the following command for starting Torchserve and running inference on the given input:
 ```
-bash run.sh -n <MODEL_NAME> -a <MAR_EXPORT_PATH> -g <NUM_GPUS> [OPTIONAL -d <INPUT_PATH> -v <REPO_VERSION>]
+bash run.sh -n <MODEL_NAME> -a <MAR_EXPORT_PATH> [OPTIONAL -d <INPUT_PATH> -v <REPO_VERSION>]
 ```
 - n:    Name of model
 - v:    Commit ID of model's repo from HuggingFace repository (optional, if not provided default set in model_config will be used)
 - d:    Absolute path of input data folder (optional)
-- g:    Number of gpus to be used to execute (Set 0 to use cpu)
 - a:    Absolute path to the Model Store directory
 
 For model names, we support MPT-7B, Falcon-7b and Llama2-7B.
@@ -76,15 +75,15 @@ Should print "Ready For Inferencing" as a message at the end
 #### Examples
 For 1 GPU Inference with official MPT-7B model:
 ```
-bash llm/run.sh -n mpt_7b -d data/translate -a /home/ubuntu/models/model_store -g 1
+bash llm/run.sh -n mpt_7b -d data/translate -a /home/ubuntu/models/model_store
 ```
 For 1 GPU Inference with official Falcon-7B model:
 ```
-bash llm/run.sh -n falcon_7b -d data/qa -a /home/ubuntu/models/model_store -g 1
+bash llm/run.sh -n falcon_7b -d data/qa -a /home/ubuntu/models/model_store
 ```
 For 1 GPU Inference with official Llama2-7B model:
 ```
-bash llm/run.sh -n llama2_7b -d data/summarize -a /home/ubuntu/models/model_store -g 1
+bash llm/run.sh -n llama2_7b -d data/summarize -a /home/ubuntu/models/model_store
 ```
 
 ### Describe registered model
@@ -172,3 +171,27 @@ We provide the capability to download and register various commits of the single
 If multiple versions of the same model are registered, we can set a particular version as the default for inferencing<br />
 
 curl -v -X PUT "http://{inference_server_endpoint}:{management_port}/{model_name}/{repo_version}/set-default"
+
+## Custom Model Support
+
+We provide the capability to generate a MAR file with custom models and start an inference server using it with Torchserve.<br />
+
+### Generate MAR file for custom model
+To generate the MAR file, run the following:
+```
+python3 download.py --no_download [--repo_version <REPO_VERSION>] --model_name <CUSTOM_MODEL_NAME> --model_path <MODEL_PATH> --mar_output <MAR_EXPORT_PATH>
+```
+- no_download:      Set flag to skip downloading the model files, must be set for custom models
+- model_name:       Name of custom model
+- repo_version:     Any model version, defaults to "1.0"
+- model_path:       Absolute path of custom model files (should be empty non empty)
+- mar_output:       Absolute path of export of MAR file (.mar) <br />
+
+### Start Torchserve and run inference for custom model
+To start Torchserve and run inference on the given input with a custom MAR file, run the following:
+```
+bash run.sh -n <CUSTOM_MODEL_NAME> -a <MAR_EXPORT_PATH> [OPTIONAL -d <INPUT_PATH>]
+```
+- n:    Name of custom model 
+- d:    Absolute path of input data folder (optional)
+- a:    Absolute path to the Model Store directory

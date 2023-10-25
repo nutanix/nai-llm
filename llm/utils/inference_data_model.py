@@ -34,7 +34,6 @@ class InferenceDataModel:
         model_name (str): Model name.
         repo_version (str): Commit ID of model's repository from HuggingFace.
         input_path (str): Path of input data folder.
-        gpus (str): Number of gpus to be used to execute.
         gen_folder (str): Path of temporary gen folder to store logs.
         mar_filepath (str): Absolute path to the MAR file.
         ts_data (TorchserveStartData): Instance of TorchserveStartData dataclass.
@@ -43,7 +42,6 @@ class InferenceDataModel:
     model_name = str()
     repo_version = str()
     input_path = str()
-    gpus = int()
     gen_folder = str()
     mar_filepath = str()
     ts_data = TorchserveStartData()
@@ -51,7 +49,7 @@ class InferenceDataModel:
 
 def set_data_model(args):
     """
-    This function sets model_name, input_path,gpus, gen_folder, mar_filepath,
+    This function sets model_name, input_path, gen_folder, mar_filepath,
     repo_version attributes of the InferenceDataModel class.
 
     Args:
@@ -63,7 +61,6 @@ def set_data_model(args):
     data_model = InferenceDataModel()
     data_model.model_name = args.model_name
     data_model.input_path = args.data
-    data_model.gpus = args.gpus
     data_model.gen_folder = args.gen_folder_name
     data_model.mar_filepath = args.mar
     data_model.repo_version = args.repo_version

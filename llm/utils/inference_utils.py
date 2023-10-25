@@ -5,7 +5,6 @@ import os
 import sys
 import time
 import traceback
-import torch
 import requests
 import utils.tsutils as ts
 import utils.system_utils as su
@@ -26,34 +25,16 @@ def error_msg_print():
     ts.stop_torchserve()
 
 
-def set_compute_setting(gpus):
-    """
-    This function read the compute setting (either GPU or CPU).
-
-    Args:
-        gpus (int): Number of GPUs.
-    """
-    if gpus > 0 and su.is_gpu_instance():
-        if not torch.cuda.is_available():
-            sys.exit("## CUDA not found \n")
-        print(f"\n## Running on {gpus} GPU(s) \n")
-
-    else:
-        print("\n## Running on CPU \n")
-        gpus = 0
-
-
-def start_ts_server(ts_data: TorchserveStartData, gpus, debug):
+def start_ts_server(ts_data: TorchserveStartData, debug):
     """
     This function starts Torchserve by calling start_torchserve from tsutils
     and throws error if it doesn't start.
 
     Args:
         ts_data (TorchserveStartData): Stores information required to start Torchserve.
-        gpus (int): Number of GPUs.
         debug (bool): Flag to print debug statements.
     """
-    started = ts.start_torchserve(ts_data=ts_data, gpus=gpus, debug=debug)
+    started = ts.start_torchserve(ts_data=ts_data, debug=debug)
     if not started:
         error_msg_print()
         sys.exit(1)
@@ -68,10 +49,10 @@ def ts_health_check(model_name, model_timeout=1200):
       model_timeout (int): Maximum amount of time to wait for a response from server.
     Raises:
         requests.exceptions.RequestException: In case of request errors.
-        KeyError: In case of key errors while readon JSON.
+        KeyError: In case of key errors while reading response JSON.
     """
     retry_count = 0
-    sleep_time = 5
+    sleep_time = 15
     success = False
     while not success and retry_count * sleep_time < model_timeout:
         try:
@@ -90,7 +71,7 @@ def ts_health_check(model_name, model_timeout=1200):
         sys.exit(1)
 
 
-def execute_inference_on_inputs(model_inputs, model_name, retry=False):
+def execute_inference_on_inputs(model_inputs, model_name):
     """
     This function runs inference on given input data files and model name by
     calling run_inference from tsutils.
@@ -103,19 +84,14 @@ def execute_inference_on_inputs(model_inputs, model_name, retry=False):
         model_inference_data = (model_name, data)
         response = ts.run_inference(model_inference_data)
         if response and response.status_code == 200:
-            if not retry:
-                print(
-                    f"## Successfully ran inference on {model_name} model."
-                    f"\n\n Output - {response.text}\n\n"
-                )
-            is_success = True
+            print(
+                f"## Successfully ran inference on {model_name} model."
+                f"\n\n Output - {response.text}\n\n"
+            )
         else:
-            if not retry:
-                print(f"## Failed to run inference on {model_name} model \n")
-                error_msg_print()
-                sys.exit(1)
-            is_success = False
-    return is_success
+            print(f"## Failed to run inference on {model_name} model \n")
+            error_msg_print()
+            sys.exit(1)
 
 
 def validate_inference_model(models_to_validate, debug):
@@ -153,10 +129,9 @@ def get_inference(data_model: InferenceDataModel, debug):
         requests.exceptions.RequestException: In case of request errors.
     """
     data_model = prepare_settings(data_model)
-    set_compute_setting(data_model.gpus)
     ts.set_config_properties(data_model)
 
-    start_ts_server(ts_data=data_model.ts_data, gpus=data_model.gpus, debug=debug)
+    start_ts_server(ts_data=data_model.ts_data, debug=debug)
     ts_health_check(data_model.model_name)
 
     try:

@@ -30,20 +30,19 @@ torch_model_archiver_command = {
 }
 
 
-def generate_ts_start_cmd(ncs, ts_data: TorchserveStartData, gpus, debug):
+def generate_ts_start_cmd(ncs, ts_data: TorchserveStartData, debug):
     """
     This function generates the Torchserve start command.
 
     Args:
         ncs (bool): To enable '--no-config-snapshots' in Torchserve.
         ts_data (TorchserveStartData): Stores information required to start Torchserve.
-        gpus (int): To set number of GPUs.
         debug (bool): Flag to print debug statements.
 
     Returns:
         str: The Torchserve start command.
     """
-    cmd = f"TS_NUMBER_OF_GPU={gpus} {torchserve_command[platform.system()]}"
+    cmd = f"{torchserve_command[platform.system()]}"
     cmd += f" --start --model-store={ts_data.ts_model_store}"
     if ncs:
         cmd += " --ncs"
@@ -60,9 +59,7 @@ def generate_ts_start_cmd(ncs, ts_data: TorchserveStartData, gpus, debug):
     return cmd
 
 
-def start_torchserve(
-    ts_data: TorchserveStartData, ncs=True, wait_for=10, gpus=0, debug=False
-):
+def start_torchserve(ts_data: TorchserveStartData, ncs=True, wait_for=10, debug=False):
     """
     This function calls generate_ts_start_cmd function to get the Torchserve start command
     and runs the same to start Torchserve.
@@ -71,14 +68,13 @@ def start_torchserve(
         ncs (bool, optional): To enable '--no-config-snapshots' in Torchserve. Defaults to True.
         ts_data (TorchserveStartData): Stores data required to start Torchserve. Defaults to None.
         wait_for (int, optional): Wait time(in secs) after running command. Defaults to 10.
-        gpus (int, optional): Number of GPUs. Defaults to 0.
         debug (bool, optional): Flag to print debug statements. Defaults to False.
 
     Returns:
         bool: True for successful Torchserve start and False otherwise
     """
     print("## Starting TorchServe \n")
-    cmd = generate_ts_start_cmd(ncs, ts_data, gpus, debug)
+    cmd = generate_ts_start_cmd(ncs, ts_data, debug)
     print(cmd)
     status = os.system(cmd)
     if status == 0:
@@ -141,11 +137,6 @@ def set_config_properties(data_model: InferenceDataModel):
         max_batch_delay,
         response_timeout,
     ) = get_params_for_registration(data_model.model_name)
-
-    if (
-        initial_workers is None
-    ):  # setting the default value of workers to number of gpus
-        initial_workers = data_model.gpus
 
     mar_name = os.path.basename(data_model.mar_filepath)
 
