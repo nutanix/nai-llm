@@ -15,8 +15,6 @@ from utils.inference_data_model import (
     prepare_settings,
 )
 
-PATH_TO_SAMPLE = "../../data/qa/sample_text1.txt"
-
 
 def error_msg_print():
     """
@@ -70,16 +68,15 @@ def ts_health_check(model_name, model_timeout=1200):
       model_timeout (int): Maximum amount of time to wait for a response from server.
     Raises:
         requests.exceptions.RequestException: In case of request errors.
+        KeyError: In case of key errors while readon JSON.
     """
-    model_input = os.path.join(os.path.dirname(__file__), PATH_TO_SAMPLE)
-    su.check_if_path_exists(model_input, "health check input", is_dir=False)
     retry_count = 0
-    sleep_time = 10
+    sleep_time = 5
     success = False
     while not success and retry_count * sleep_time < model_timeout:
         try:
-            success = execute_inference_on_inputs([model_input], model_name, retry=True)
-        except requests.exceptions.RequestException:
+            success = ts.run_health_check(model_name)
+        except (requests.exceptions.RequestException, KeyError):
             pass
         if not success:
             time.sleep(sleep_time)

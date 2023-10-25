@@ -133,6 +133,7 @@ def torchserve_run(params):
         params (Namespace): An argparse.Namespace object containing command-line arguments.
                             These are the necessary parameters and configurations for the script.
     """
+    successful_run = False
     try:
         # Stop the server if anything is running
         cleanup(params.gen_folder_name, True, False)
@@ -146,8 +147,12 @@ def torchserve_run(params):
         print("*\n*\n*  Ready For Inferencing  ")
         print("*\n*\n**************************************")
 
+        successful_run = True
+
     finally:
         cleanup(params.gen_folder_name, params.stop_server, params.ts_cleanup)
+
+    return successful_run
 
 
 def cleanup(gen_folder, ts_stop=True, ts_cleanup=True):

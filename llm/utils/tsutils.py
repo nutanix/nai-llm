@@ -246,7 +246,7 @@ def run_inference(
         model_inference_data (str, list(str)): The model name and paths of input files.
         protocol (str, optional): Request protocol. Defaults to "http".
         host (str, optional): Request host. Defaults to "localhost".
-        port (str, optional): Request Port. Defaults to "8081".
+        port (str, optional): Request Port. Defaults to "8080".
         timeout (int, optional): Request timeout (sec). Defaults to 120.
 
     Returns:
@@ -260,3 +260,28 @@ def run_inference(
         files["data"] = (file_name, file)
         response = requests.post(url, files=files, timeout=timeout)
     return response
+
+
+def run_health_check(
+    model_name, protocol="http", host="localhost", port="8081", timeout=120
+):
+    """
+    This function runs a health check for the workers of the deployed model
+
+    Args:
+        model_name (str): The name of the model.
+        protocol (str, optional): Request protocol. Defaults to "http".
+        host (str, optional): Request host. Defaults to "localhost".
+        port (str, optional): Request Port. Defaults to "8081".
+        timeout (int, optional): Request timeout (sec). Defaults to 120.
+
+    Returns:
+        bool: True for succesful health check and false otherwise.
+    """
+    url = f"{protocol}://{host}:{port}/models/{model_name}"
+    response = requests.get(url, timeout=timeout)
+    workers = response.json()[0]["workers"]
+    for worker in workers:
+        if worker["status"] != "READY":
+            return False
+    return True
