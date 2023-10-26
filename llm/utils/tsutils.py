@@ -73,7 +73,7 @@ def start_torchserve(ts_data: TorchserveStartData, ncs=True, wait_for=10, debug=
     Returns:
         bool: True for successful Torchserve start and False otherwise
     """
-    print("## Starting TorchServe \n")
+    print("\n## Starting TorchServe \n")
     cmd = generate_ts_start_cmd(ncs, ts_data, debug)
     print(cmd)
     status = os.system(cmd)

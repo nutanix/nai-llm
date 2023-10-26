@@ -70,6 +70,14 @@ function inference_exec_vm(){
     echo "$cmd";
     echo "";
     $cmd
+    exit_status=$?
+    # Checks exit status of python file
+    if [ "${exit_status}" -ne 0 ];
+    then
+        exit 1
+    else
+        exit 0
+    fi
 }
 
 # Entry Point
