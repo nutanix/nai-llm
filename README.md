@@ -179,13 +179,14 @@ We provide the capability to generate a MAR file with custom models and start an
 ### Generate MAR file for custom model
 To generate the MAR file, run the following:
 ```
-python3 download.py --no_download [--repo_version <REPO_VERSION>] --model_name <CUSTOM_MODEL_NAME> --model_path <MODEL_PATH> --mar_output <MAR_EXPORT_PATH>
+python3 download.py --no_download [--repo_version <REPO_VERSION> --handler <CUSTOM_HANDLER_PATH>] --model_name <CUSTOM_MODEL_NAME> --model_path <MODEL_PATH> --mar_output <MAR_EXPORT_PATH>
 ```
 - no_download:      Set flag to skip downloading the model files, must be set for custom models
 - model_name:       Name of custom model
-- repo_version:     Any model version, defaults to "1.0"
+- repo_version:     Any model version, defaults to "1.0" (optional)
 - model_path:       Absolute path of custom model files (should be empty non empty)
-- mar_output:       Absolute path of export of MAR file (.mar) <br />
+- mar_output:       Absolute path of export of MAR file (.mar) 
+- handler:          Path to custom handler, defaults to llm/handler.py (optional)<br />
 
 ### Start Torchserve and run inference for custom model
 To start Torchserve and run inference on the given input with a custom MAR file, run the following:
