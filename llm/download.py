@@ -23,7 +23,7 @@ from utils.system_utils import (
     get_all_files_in_directory,
 )
 from utils.shell_utils import mv_file, rm_dir
-from utils.generate_data_model import GenerateDataModel, set_values
+from utils.generate_data_model import GenerateDataModel
 
 FILE_EXTENSIONS_TO_IGNORE = [
     ".safetensors",
@@ -87,26 +87,6 @@ def filter_files_by_extension(filenames, extensions_to_remove):
         filename for filename in filenames if not re.search(pattern, filename)
     ]
     return filtered_filenames
-
-
-def check_if_mar_exists(gen_model: GenerateDataModel):
-    """
-    This function checks if MAR file of a model already exists and skips
-    generation if the MAR file already exists
-
-    Args:
-        gen_model (GenerateDataModel): An instance of the GenerateDataModel dataclass
-    """
-    check_path = os.path.join(
-        gen_model.mar_utils.mar_output, f"{gen_model.mar_utils.mar_name}.mar"
-    )
-    if os.path.exists(check_path):
-        print(
-            f"## Skipping MAR file generation as it already exists\n"
-            f" Model name: {gen_model.model_name}\n Repository Version: "
-            f"{gen_model.repo_info.repo_version}\n"
-        )
-        sys.exit(1)
 
 
 def check_if_model_files_exist(gen_model: GenerateDataModel):
@@ -342,12 +322,12 @@ def run_script(params):
         params (Namespace): An argparse.Namespace object containing command-line arguments.
                 These are the necessary parameters and configurations for the script.
     """
-    gen_model = set_values(params)
+    gen_model = GenerateDataModel(params)
     gen_model = read_config_for_download(gen_model)
 
     check_if_path_exists(gen_model.mar_utils.model_path, "model_path", is_dir=True)
     check_if_path_exists(gen_model.mar_utils.mar_output, "mar_output", is_dir=True)
-    check_if_mar_exists(gen_model)
+    gen_model.check_if_mar_exists()
 
     if not gen_model.skip_download:
         gen_model = run_download(gen_model)

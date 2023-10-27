@@ -50,15 +50,6 @@ function create_execution_cmd()
         helpFunction
     fi
 
-    # Check if nvidia-smi is available
-    if command -v nvidia-smi &> /dev/null; then
-        # Run nvidia-smi to get GPU information and extract the GPU name
-        gpu_info=$(nvidia-smi --query-gpu=name --format=csv,noheader,nounits | head -n 1)
-        gpu_name=$(echo "$gpu_info" | tr -d '[:space:]')
-        sys_gpus=$(nvidia-smi --list-gpus | wc -l)
-        cmd+=" --gpu_type $gpu_name"
-    fi
-
     if [ ! -z "$data" ] ; then
         cmd+=" --data $data"
     fi

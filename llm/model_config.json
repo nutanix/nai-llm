@@ -13,8 +13,7 @@
             "batch_size": 1,
             "max_batch_delay": 200,
             "response_timeout": 2000
-        },
-        "gpu_type": ["A100-PCIE-40GB", "A100-PCIE-80GB"]
+        }
     },
     "falcon_7b": {
         "handler": "handler.py",
@@ -30,8 +29,7 @@
             "batch_size": 1,
             "max_batch_delay": 200,
             "response_timeout": 2000
-        },
-        "gpu_type": ["A100-PCIE-40GB", "A100-PCIE-80GB"]
+        }
     },
     "llama2_7b": {
         "handler": "handler.py",
@@ -47,8 +45,7 @@
             "batch_size": 1,
             "max_batch_delay": 200,
             "response_timeout": 2000
-        },
-        "gpu_type": ["A100-PCIE-40GB", "A100-PCIE-80GB"]
+        }
     },
     "phi-1_5": {
         "handler": "handler.py",
@@ -58,8 +55,7 @@
             "batch_size": 1,
             "max_batch_delay": 200,
             "response_timeout": 2000
-        },
-        "gpu_type": ["A100-PCIE-40GB", "A100-PCIE-80GB"]
+        }
     },
     "gpt2": {
         "handler": "handler.py",
@@ -69,7 +65,6 @@
             "batch_size": 1,
             "max_batch_delay": 200,
             "response_timeout": 2000
-        },
-        "gpu_type": ["A100-PCIE-40GB", "A100-PCIE-80GB"]
+        }
     }
 }

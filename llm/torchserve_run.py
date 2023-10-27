@@ -8,11 +8,11 @@ Attributes:
 import os
 import argparse
 import json
+import torch
 from utils.inference_utils import get_inference
 from utils.shell_utils import rm_dir
 import utils.tsutils as ts
-from utils.system_utils import check_if_path_exists
-from utils.system_utils import create_folder_if_not_exists, remove_suffix_if_starts_with
+from utils.system_utils import check_if_path_exists, create_folder_if_not_exists
 import utils.inference_data_model as idm
 from utils.marsgen import get_mar_name
 
@@ -38,20 +38,17 @@ def read_config_for_inference(params):
         params.is_custom_model = False
         if params.model_name not in models:
             print(
-                f"## Using custom MAR file : {params.model_name}.mar\n\n"
-                f"WARNING: This model has not been validated on any GPUs\n\n"
+                f"## Using custom MAR file : {params.model_name}.mar\n"
+                f"WARNING: This model has not been validated\n"
             )
             params.is_custom_model = True
 
-        if not params.is_custom_model and params.gpu_type:
-            gpu_type_list = models[params.model_name]["gpu_type"]
-            gpu_type = remove_suffix_if_starts_with(params.gpu_type, "NVIDIA")
-            if gpu_type not in gpu_type_list:
-                print(
-                    "WARNING: This GPU Type is not validated, the validated GPU Types are:"
-                )
-                for gpu in gpu_type_list:
-                    print(gpu)
+        if torch.cuda.is_available():
+            print("## Running model on NVIDIA GPU(s)")
+            print(f"## Name of GPU(s): {torch.cuda.get_device_properties(0).name}")
+            print(f"## Number of GPUs used: {torch.cuda.device_count()}\n")
+        else:
+            print("## Running model on CPU\n")
 
         if (
             not params.is_custom_model
@@ -90,7 +87,7 @@ def run_inference_with_mar(params):
         params (Namespace): An argparse.Namespace object containing command-line arguments.
                             These are the necessary parameters and configurations for the script.
     """
-    data_model = idm.set_data_model(params)
+    data_model = idm.InferenceDataModel(params)
     get_inference(data_model, params.debug_mode)
 
 
@@ -188,13 +185,6 @@ if __name__ == "__main__":
         default="",
         metavar="n",
         help="HuggingFace repository version",
-    )
-    parser.add_argument(
-        "--gpu_type",
-        type=str,
-        default="",
-        metavar="gn",
-        help="type of gpus to use for execution",
     )
     parser.add_argument(
         "--gen_folder_name",

@@ -5,8 +5,6 @@ Attributes:
     nvidia_smi_cmd (dict): Contains the nvidia-smi command in different operating systems.
 """
 import os
-import platform
-import subprocess
 import sys
 from pathlib import Path
 
@@ -15,25 +13,6 @@ nvidia_smi_cmd = {
     "Darwin": "nvidia-smi",
     "Linux": "nvidia-smi",
 }
-
-
-def is_gpu_instance():
-    """
-    This function checks if CUDA drivers are installed and GPU is present.
-
-    Raises:
-        exp: Exception caused if CUDA drivers are not installed (nvidia-smi not found).
-
-    Returns:
-        bool: True if CUDA drivers exist and GPU is present.
-    """
-    try:
-        subprocess.check_output(nvidia_smi_cmd[platform.system()])
-        print("\n## Nvidia GPU detected!")
-        return True
-    except subprocess.CalledProcessError as exp:
-        print("\n## No Nvidia GPU in system!")
-        raise exp
 
 
 def check_if_path_exists(filepath, err="", is_dir=False):

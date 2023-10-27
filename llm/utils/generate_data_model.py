@@ -3,7 +3,9 @@ This module stores the dataclasses GenerateDataModel, MarUtils, RepoInfo
 and function set_values that sets the GenerateDataModel attributes.
 """
 
+import os
 import dataclasses
+import sys
 
 
 @dataclasses.dataclass
@@ -40,10 +42,10 @@ class RepoInfo:
     hf_token = str()
 
 
-@dataclasses.dataclass
 class GenerateDataModel:
     """
-    This dataclass stores information regarding model download and MAR file generation.
+    This class stores information regarding model download and MAR file generation and
+    related methods.
 
     Attributes:
         model_name (str): Name of the model.
@@ -61,26 +63,46 @@ class GenerateDataModel:
     repo_info = RepoInfo()
     debug = bool()
 
+    def __init__(self, params):
+        """
+        This is the init method that calls set_values method.
 
-def set_values(params):
-    """
-    This function sets values for the GenerateDataModel object based on the command-line arguments.
+        Args:
+            params: An argparse.Namespace object containing command-line arguments.
+        """
+        self.set_values(params)
 
-    Args:
-        params: An argparse.Namespace object containing command-line arguments.
+    def set_values(self, params):
+        """
+        This method sets values for the GenerateDataModel object based on the
+        command-line arguments.
 
-    Returns:
-        GenerateDataModel: An instance of the GenerateDataModel dataclass
-    """
-    gen_model = GenerateDataModel()
-    gen_model.model_name = params.model_name
-    gen_model.skip_download = params.no_download
-    gen_model.debug = params.debug
+        Args:
+            params: An argparse.Namespace object containing command-line arguments.
+        """
+        self.model_name = params.model_name
+        self.skip_download = params.no_download
+        self.debug = params.debug
 
-    gen_model.repo_info.hf_token = params.hf_token
-    gen_model.repo_info.repo_version = params.repo_version
+        self.repo_info.hf_token = params.hf_token
+        self.repo_info.repo_version = params.repo_version
 
-    gen_model.mar_utils.handler_path = params.handler_path
-    gen_model.mar_utils.model_path = params.model_path
-    gen_model.mar_utils.mar_output = params.mar_output
-    return gen_model
+        self.mar_utils.handler_path = params.handler_path
+        self.mar_utils.model_path = params.model_path
+        self.mar_utils.mar_output = params.mar_output
+
+    def check_if_mar_exists(self):
+        """
+        This method checks if MAR file of a model already exists and skips
+        generation if the MAR file already exists
+        """
+        check_path = os.path.join(
+            self.mar_utils.mar_output, f"{self.mar_utils.mar_name}.mar"
+        )
+        if os.path.exists(check_path):
+            print(
+                f"## Skipping MAR file generation as it already exists\n"
+                f" Model name: {self.model_name}\n Repository Version: "
+                f"{self.repo_info.repo_version}\n"
+            )
+            sys.exit(1)

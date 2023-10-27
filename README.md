@@ -174,7 +174,8 @@ curl -v -X PUT "http://{inference_server_endpoint}:{management_port}/{model_name
 
 ## Custom Model Support
 
-We provide the capability to generate a MAR file with custom models and start an inference server using it with Torchserve.<br />
+We provide the capability to generate a MAR file with custom models and start an inference server using it with Torchserve.
+A model is recognised as a custom model if it's model name is not present in the model_config file.<br />
 
 ### Generate MAR file for custom model
 To generate the MAR file, run the following:

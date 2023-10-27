@@ -11,7 +11,6 @@ import utils.system_utils as su
 from utils.inference_data_model import (
     InferenceDataModel,
     TorchserveStartData,
-    prepare_settings,
 )
 
 
@@ -128,7 +127,7 @@ def get_inference(data_model: InferenceDataModel, debug):
         KeyError: In case of reading JSON files.
         requests.exceptions.RequestException: In case of request errors.
     """
-    data_model = prepare_settings(data_model)
+    data_model.prepare_settings()
     ts.set_config_properties(data_model)
 
     start_ts_server(ts_data=data_model.ts_data, debug=debug)
