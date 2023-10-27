@@ -49,3 +49,20 @@ def mv_file(src, dst):
         dst (str): Destination file path.
     """
     shutil.move(src, dst)
+
+
+def copy_file(source_file, destination_file):
+    """
+    This function copies a file from source file path to destination file path
+    Args:
+        source_file (str): The path of the file that needs to be copied.
+        destination_file (str): The path where the file is to be copied.
+    Raises:
+        Exception: If any error occurs during copying file.
+    Returns:
+        None
+    """
+    try:
+        shutil.copy(source_file, destination_file)
+    except OSError as exp:
+        print(f"## Error: {exp}")
