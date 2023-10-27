@@ -89,7 +89,7 @@ def set_generate_args(
     return args
 
 
-def test_case_1():
+def test_case_default():
     """
     This function tests the default GPT2 model.
     Expected result: Success.
@@ -104,7 +104,7 @@ def test_case_1():
         assert result is True
 
 
-def test_case_2():
+def test_case_wrong_model_store():
     """
     This function tests wrong model store path.
     Expected result: Failure.
@@ -119,7 +119,7 @@ def test_case_2():
         assert False
 
 
-def test_case_3():
+def test_case_wrong_model_path():
     """
     This function tests wrong model files path.
     Expected result: Failure.
@@ -134,7 +134,7 @@ def test_case_3():
         assert False
 
 
-def test_case_4():
+def test_case_non_empty_model_path():
     """
     This function tests non empty model files path without skip download.
     Expected result: Failure.
@@ -151,7 +151,7 @@ def test_case_4():
         assert False
 
 
-def test_case_5():
+def test_case_invalid_repo_version():
     """
     This function tests invalid repo version.
     Expected result: Failure.
@@ -166,7 +166,7 @@ def test_case_5():
         assert False
 
 
-def test_case_6():
+def test_case_valid_repo_version():
     """
     This function tests valid repo version.
     Expected result: Success.
@@ -181,7 +181,7 @@ def test_case_6():
         assert result is True
 
 
-def test_case_7():
+def test_case_invalid_handler():
     """
     This function tests invalid handler path.
     Expected result: Failure.
@@ -196,7 +196,7 @@ def test_case_7():
         assert False
 
 
-def test_case_8():
+def test_case_skip_download_fail():
     """
     This function tests skip download without model files.
     Expected result: Failure.
@@ -212,7 +212,7 @@ def test_case_8():
         assert False
 
 
-def test_case_9():
+def test_case_mar_exists():
     """
     This function tests if MAR file already exists.
     Expected result: Exits.
@@ -228,7 +228,7 @@ def test_case_9():
         assert False
 
 
-def test_case_10():
+def test_case_success_skip_download():
     """
     This function tests skip download case.
     Expected result: Success.
@@ -277,7 +277,7 @@ def custom_model_restore():
     cleanup_folders()
 
 
-def test_case_11():
+def test_case_custom_model():
     """
     This function tests the custom model case.
     This is done by clearing the 'model_config.json' and

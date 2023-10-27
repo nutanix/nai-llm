@@ -14,7 +14,7 @@ from tests.test_download import (
     set_generate_args,
     custom_model_restore,
     custom_model_setup,
-    test_case_1,
+    test_case_default,
 )
 
 INPUT_PATH = os.path.join(
@@ -28,7 +28,7 @@ def test_generate_mar():
     This is done to generate the MAR file used in the rest of the
     tests.
     """
-    test_case_1()
+    test_case_default()
 
 
 def get_run_cmd(
@@ -59,7 +59,7 @@ def get_run_cmd(
     return cmd.split()
 
 
-def test_run_case_1():
+def test_run_case_default():
     """
     This function tests the default GPT2 model with input path.
     Expected result: Success.
@@ -68,7 +68,7 @@ def test_run_case_1():
     assert process.returncode == 0
 
 
-def test_run_case_2():
+def test_run_case_default_no_input_path():
     """
     This function tests the default GPT2 model without input path.
     Expected result: Success.
@@ -77,7 +77,7 @@ def test_run_case_2():
     assert process.returncode == 0
 
 
-def test_run_case_3():
+def test_run_case_no_model_name():
     """
     This function tests missing model name.
     Expected result: Failure.
@@ -86,7 +86,7 @@ def test_run_case_3():
     assert process.returncode == 1
 
 
-def test_run_case_4():
+def test_run_case_wrong_model_name():
     """
     This function tests wrong model name.
     Expected result: Failure.
@@ -95,7 +95,7 @@ def test_run_case_4():
     assert process.returncode == 1
 
 
-def test_run_case_5():
+def test_run_case_no_model_store():
     """
     This function tests missing model store.
     Expected result: Failure.
@@ -104,7 +104,7 @@ def test_run_case_5():
     assert process.returncode == 1
 
 
-def test_run_case_6():
+def test_run_case_wrong_model_store():
     """
     This function tests wrong model store.
     Expected result: Failure.
@@ -113,7 +113,7 @@ def test_run_case_6():
     assert process.returncode == 1
 
 
-def test_run_case_7():
+def test_run_case_wrong_input_path():
     """
     This function tests wrong input path.
     Expected result: Failure.
@@ -122,7 +122,7 @@ def test_run_case_7():
     assert process.returncode == 1
 
 
-def test_run_case_8():
+def test_run_case_vaild_repo_version():
     """
     This function tests valid repo version.
     Expected result: Success.
@@ -134,7 +134,7 @@ def test_run_case_8():
     assert process.returncode == 0
 
 
-def test_run_case_9():
+def test_run_case_invalid_repo_version():
     """
     This function tests invalid repo version.
     Expected result: Failure.
@@ -145,7 +145,7 @@ def test_run_case_9():
     assert process.returncode == 1
 
 
-def test_run_case_10():
+def test_run_case_custom_model():
     """
     This function tests custom model with input folder.
     Expected result: Success.
