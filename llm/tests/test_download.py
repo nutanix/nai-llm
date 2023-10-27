@@ -89,7 +89,7 @@ def set_generate_args(
     return args
 
 
-def test_case_default():
+def test_default_generate_success():
     """
     This function tests the default GPT2 model.
     Expected result: Success.
@@ -104,7 +104,7 @@ def test_case_default():
         assert result is True
 
 
-def test_case_wrong_model_store():
+def test_wrong_model_store_throw_error():
     """
     This function tests wrong model store path.
     Expected result: Failure.
@@ -119,7 +119,7 @@ def test_case_wrong_model_store():
         assert False
 
 
-def test_case_wrong_model_path():
+def test_wrong_model_path_throw_error():
     """
     This function tests wrong model files path.
     Expected result: Failure.
@@ -134,7 +134,7 @@ def test_case_wrong_model_path():
         assert False
 
 
-def test_case_non_empty_model_path():
+def test_non_empty_model_path_throw_error():
     """
     This function tests non empty model files path without skip download.
     Expected result: Failure.
@@ -151,7 +151,7 @@ def test_case_non_empty_model_path():
         assert False
 
 
-def test_case_invalid_repo_version():
+def test_invalid_repo_version_throw_error():
     """
     This function tests invalid repo version.
     Expected result: Failure.
@@ -166,7 +166,7 @@ def test_case_invalid_repo_version():
         assert False
 
 
-def test_case_valid_repo_version():
+def test_valid_repo_version_success():
     """
     This function tests valid repo version.
     Expected result: Success.
@@ -181,7 +181,7 @@ def test_case_valid_repo_version():
         assert result is True
 
 
-def test_case_invalid_handler():
+def test_invalid_handler_throw_error():
     """
     This function tests invalid handler path.
     Expected result: Failure.
@@ -196,7 +196,7 @@ def test_case_invalid_handler():
         assert False
 
 
-def test_case_skip_download_fail():
+def test_skip_download_throw_error():
     """
     This function tests skip download without model files.
     Expected result: Failure.
@@ -212,7 +212,7 @@ def test_case_skip_download_fail():
         assert False
 
 
-def test_case_mar_exists():
+def test_mar_exists_throw_error():
     """
     This function tests if MAR file already exists.
     Expected result: Exits.
@@ -228,7 +228,7 @@ def test_case_mar_exists():
         assert False
 
 
-def test_case_skip_download_success():
+def test_skip_download_success():
     """
     This function tests skip download case.
     Expected result: Success.
@@ -277,7 +277,7 @@ def custom_model_restore():
     cleanup_folders()
 
 
-def test_case_custom_model():
+def test_custom_model_success():
     """
     This function tests the custom model case.
     This is done by clearing the 'model_config.json' and

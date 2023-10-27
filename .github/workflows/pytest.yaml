@@ -28,4 +28,4 @@ jobs:
         run: pip install pytest -r llm/requirements.txt
 
       - name: Run pytests
-        run:  cd llm && python3 -m pytest tests
+        run:  cd llm && python3 -m pytest tests -v
