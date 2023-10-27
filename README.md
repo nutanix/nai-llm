@@ -73,15 +73,15 @@ For model names, we support MPT-7B, Falcon-7b and Llama2-7B.
 Should print "Ready For Inferencing" as a message at the end
 
 #### Examples
-For 1 GPU Inference with official MPT-7B model:
+For Inference with official MPT-7B model:
 ```
 bash llm/run.sh -n mpt_7b -d data/translate -a /home/ubuntu/models/model_store
 ```
-For 1 GPU Inference with official Falcon-7B model:
+For Inference with official Falcon-7B model:
 ```
 bash llm/run.sh -n falcon_7b -d data/qa -a /home/ubuntu/models/model_store
 ```
-For 1 GPU Inference with official Llama2-7B model:
+For Inference with official Llama2-7B model:
 ```
 bash llm/run.sh -n llama2_7b -d data/summarize -a /home/ubuntu/models/model_store
 ```
