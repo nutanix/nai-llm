@@ -228,7 +228,7 @@ def test_case_mar_exists():
         assert False
 
 
-def test_case_success_skip_download():
+def test_case_skip_download_success():
     """
     This function tests skip download case.
     Expected result: Success.
