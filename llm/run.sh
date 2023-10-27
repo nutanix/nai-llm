@@ -56,9 +56,8 @@ function create_execution_cmd()
 }
 
 function inference_exec_vm(){
-    echo "Running the Inference script";
     echo "";
-    echo "$cmd";
+    echo "Running the Inference script";
     echo "";
     $cmd
     exit_status=$?

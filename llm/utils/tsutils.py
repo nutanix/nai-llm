@@ -75,10 +75,11 @@ def start_torchserve(ts_data: TorchserveStartData, ncs=True, wait_for=10, debug=
     """
     print("\n## Starting TorchServe \n")
     cmd = generate_ts_start_cmd(ncs, ts_data, debug)
-    print(cmd)
+    if debug:
+        print(cmd)
     status = os.system(cmd)
     if status == 0:
-        print("\n## Successfully started TorchServe \n")
+        print("## Successfully started TorchServe \n")
         time.sleep(wait_for)
         print("## Registering model: this might take a while\n")
         return True
