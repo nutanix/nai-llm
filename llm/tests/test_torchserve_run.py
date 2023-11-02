@@ -166,7 +166,6 @@ def test_inference_txt_file_success() -> None:
         response = requests.post(url, data=data, timeout=120, headers=headers)
     except requests.exceptions.RequestException:
         assert False
-    print(response.status_code, response.text)
     assert response.status_code == 200 and response.text
 
 
@@ -182,7 +181,7 @@ def test_inference_json_file_success() -> None:
     with open(file_name, "r", encoding="utf-8") as file:
         data = file.read()
     try:
-        response = requests.post(url, data=data, timeout=120, headers=headers)
+        response = requests.post(url, json=data, timeout=120, headers=headers)
     except requests.exceptions.RequestException:
         assert False
     if response.status_code != 200:
