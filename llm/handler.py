@@ -144,8 +144,9 @@ class LLMHandler(BaseHandler, ABC):
                         input_list.append(input_text)
 
             else:
-                if isinstance(input_data, (bytes, bytearray)):
-                    row_input = input_data.decode("utf-8")
+                row_input = input_data
+                if isinstance(row_input, (bytes, bytearray)):
+                    row_input = row_input.decode("utf-8")
 
                 # Set as raw for non kserve requests
                 self.request["request_type"][idx] = "raw"

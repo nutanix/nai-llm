@@ -247,10 +247,11 @@ def run_inference(
     model_name, file_name = model_inference_data
 
     url = f"{protocol}://{host}:{port}/predictions/{model_name}"
-    files = {}
+    headers = {"Content-Type": "application/text; charset=utf-8"}
     with open(file_name, "rb") as file:
-        files["data"] = (file_name, file)
-        response = requests.post(url, files=files, timeout=timeout)
+        data = file.read()
+
+    response = requests.post(url, data=data, timeout=timeout, headers=headers)
     return response
 
 
