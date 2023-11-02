@@ -6,6 +6,7 @@ import sys
 import time
 import traceback
 from typing import List, Dict
+import json
 import requests
 import utils.tsutils as ts
 import utils.system_utils as su
@@ -82,7 +83,19 @@ def execute_inference_on_inputs(model_inputs: List[str], model_name: str) -> Non
     """
     for data in model_inputs:
         model_inference_data = (model_name, data)
-        response = ts.run_inference(model_inference_data)
+
+        try:
+            with open(data, "r", encoding="utf-8") as file:
+                json.loads(file.read())
+            is_json_content_type = True
+        except ValueError:
+            is_json_content_type = False
+
+        response = (
+            ts.run_inference_json_input(model_inference_data)
+            if is_json_content_type
+            else ts.run_inference_text_input(model_inference_data)
+        )
         if response and response.status_code == 200:
             print(
                 f"## Successfully ran inference on {model_name} model."

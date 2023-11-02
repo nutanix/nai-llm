@@ -103,22 +103,34 @@ curl http://localhost:8081/models/llama2_7b
 ```
 
 ### Inference Check
-curl http://{inference_server_endpoint}:{inference_port}/predictions/{model_name} -T {input_file} <br />
+curl -v -H "Content-Type: application/text" http://{inference_server_endpoint}:{inference_port}/predictions/{model_name} -d @data.txt <br />
 
 Test input file can be found in the data folder. <br />
 
 For MPT-7B model
 ```
-curl http://localhost:8080/predictions/mpt_7b -T data/qa/sample_test1.txt
+curl -v -H "Content-Type: application/text" http://localhost:8080/predictions/mpt_7b -d @$WORK_DIR/data/qa/sample_test1.txt
 ```
+```
+curl -v -H "Content-Type: application/json" http://localhost:8080/predictions/mpt_7b -d @$WORK_DIR/data/qa/sample_test4.json
+```
+
 For Falcon-7B model
 ```
-curl http://localhost:8080/predictions/falcon_7b -T data/summarize/sample_test1.txt
+curl -v -H "Content-Type: application/text" http://localhost:8080/predictions/falcon_7b -d @$WORK_DIR/data/summarize/sample_test1.txt
 ```
+```
+curl -v -H "Content-Type: application/json" http://localhost:8080/predictions/falcon_7b -d @$WORK_DIR/data/summarize/sample_test3.json
+```
+
 For Llama2-7B model
 ```
-curl http://localhost:8080/predictions/llama2_7b -T data/translate/sample_test1.txt
+curl -v -H "Content-Type: application/text" http://localhost:8080/predictions/llama2_7b -d @$WORK_DIR/data/translate/sample_test1.txt
 ```
+```
+curl -v -H "Content-Type: application/json" http://localhost:8080/predictions/llama2_7b -d @$WORK_DIR/data/translate/sample_test3.json
+```
+
 ### Register additional models
 For loading multiple unique models, make sure that the MAR files (.mar) for the concerned models are stored in the same directory <br />
 

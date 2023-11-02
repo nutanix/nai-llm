@@ -7,6 +7,7 @@ import logging
 import os
 from abc import ABC
 from collections import defaultdict
+from typing import List, Dict
 import torch
 import transformers
 from ts.torch_handler.base_handler import BaseHandler
@@ -115,7 +116,7 @@ class LLMHandler(BaseHandler, ABC):
         self.initialized = True
         logger.info("Initialized TorchServe Server!")
 
-    def preprocess(self, data):
+    def preprocess(self, data: str) -> torch.Tensor:
         """
         This method tookenizes input text using the associated tokenizer.
         Args:
@@ -144,8 +145,9 @@ class LLMHandler(BaseHandler, ABC):
                         input_list.append(input_text)
 
             else:
-                if isinstance(input_data, (bytes, bytearray)):
-                    row_input = input_data.decode("utf-8")
+                row_input = input_data
+                if isinstance(row_input, (bytes, bytearray)):
+                    row_input = row_input.decode("utf-8")
 
                 # Set as raw for non kserve requests
                 self.request["request_type"][idx] = "raw"
@@ -158,7 +160,7 @@ class LLMHandler(BaseHandler, ABC):
 
         return encoded_input
 
-    def inference(self, data, *args, **kwargs):
+    def inference(self, data: torch.Tensor, *args, **kwargs) -> List[str]:
         """
         This method reads the generation parameters set as environment vairables
         and uses the preprocessed tokens and generation parameters to generate a
@@ -197,7 +199,7 @@ class LLMHandler(BaseHandler, ABC):
         logger.info("Generated text is: %s", ", ".join(map(str, inference)))
         return inference
 
-    def postprocess(self, data):
+    def postprocess(self, data: List[str]) -> List[str]:
         """
         This method returns the list of generated text recieved.
         Args:
@@ -235,7 +237,7 @@ class LLMHandler(BaseHandler, ABC):
 
         return response_list
 
-    def _batch_to_json(self, data):
+    def _batch_to_json(self, data: List[str]) -> List[Dict]:
         """
         Splits batch output to json objects
         """
@@ -244,7 +246,7 @@ class LLMHandler(BaseHandler, ABC):
             output.append(self._to_json(item))
         return output
 
-    def _to_json(self, data):
+    def _to_json(self, data: str) -> Dict:
         """
         Constructs JSON object from data
         """
@@ -259,7 +261,7 @@ class LLMHandler(BaseHandler, ABC):
         output_data["data"] = [data]
         return output_data
 
-    def get_env_value(self, env_var):
+    def get_env_value(self, env_var: str) -> str:
         """
         This function gets the value of an environment variable as a float.
         Args:
