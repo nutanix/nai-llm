@@ -7,6 +7,8 @@ Attributes:
 import os
 import subprocess
 from typing import List
+import json
+import requests
 import pytest
 import download
 from tests.test_download import (
@@ -147,6 +149,49 @@ def test_invalid_repo_version_throw_error() -> None:
         get_run_cmd(repo_version="invalid_repo_version"), check=False
     )
     assert process.returncode == 1
+
+
+def test_inference_txt_file_success() -> None:
+    """
+    This function tests inference with example .txt file.
+    Expected result: Success.
+    """
+    subprocess.run(get_run_cmd(), check=False)
+    url = "http://localhost:8080/predictions/gpt2"
+    headers = {"Content-Type": "application/text; charset=utf-8"}
+    file_name = os.path.join(INPUT_PATH, "sample_text1.txt")
+    with open(file_name, "r", encoding="utf-8") as file:
+        data = file.read()
+    try:
+        response = requests.post(url, data=data, timeout=120, headers=headers)
+    except requests.exceptions.RequestException:
+        assert False
+    print(response.status_code, response.text)
+    assert response.status_code == 200 and response.text
+
+
+def test_inference_json_file_success() -> None:
+    """
+    This function tests inference with example .json file.
+    Expected result: Success.
+    """
+    subprocess.run(get_run_cmd(), check=False)
+    url = "http://localhost:8080/predictions/gpt2"
+    headers = {"Content-Type": "application/json; charset=utf-8"}
+    file_name = os.path.join(INPUT_PATH, "sample_text4.json")
+    with open(file_name, "r", encoding="utf-8") as file:
+        data = file.read()
+    try:
+        response = requests.post(url, data=data, timeout=120, headers=headers)
+    except requests.exceptions.RequestException:
+        assert False
+    if response.status_code != 200:
+        assert False
+    try:
+        output = json.loads(response.text)
+        assert output["id"] and output["outputs"]
+    except (ValueError, KeyError):
+        assert False
 
 
 def test_custom_model_success() -> None:
