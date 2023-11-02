@@ -13,6 +13,7 @@ import sys
 from collections import Counter
 import re
 import uuid
+from typing import List
 import huggingface_hub as hfh
 from huggingface_hub.utils import HfHubHTTPError
 from utils.marsgen import get_mar_name, generate_mars
@@ -38,7 +39,7 @@ FILE_EXTENSIONS_TO_IGNORE = [
 MODEL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "model_config.json")
 
 
-def get_ignore_pattern_list(extension_list):
+def get_ignore_pattern_list(extension_list: List[str]) -> List[str]:
     """
     This function takes a list of file extensions and returns a list of patterns that
     can be used to filter out files with these extensions during model download.
@@ -53,7 +54,7 @@ def get_ignore_pattern_list(extension_list):
     return ["*" + pattern for pattern in extension_list]
 
 
-def compare_lists(list1, list2):
+def compare_lists(list1: List[str], list2: List[str]) -> bool:
     """
     This function checks if two lists are equal by comparing their contents,
     regardless of the order.
@@ -68,7 +69,9 @@ def compare_lists(list1, list2):
     return Counter(list1) == Counter(list2)
 
 
-def filter_files_by_extension(filenames, extensions_to_remove):
+def filter_files_by_extension(
+    filenames: List[str], extensions_to_remove: List[str]
+) -> List[str]:
     """
     This function takes a list of filenames and a list of extensions to remove.
     It returns a new list of filenames after filtering out those with specified extensions.
@@ -89,7 +92,7 @@ def filter_files_by_extension(filenames, extensions_to_remove):
     return filtered_filenames
 
 
-def check_if_model_files_exist(gen_model: GenerateDataModel):
+def check_if_model_files_exist(gen_model: GenerateDataModel) -> bool:
     """
     This function compares the list of files in the downloaded model directory with the
     list of files in the HuggingFace repository. It takes into account any files to
@@ -113,7 +116,7 @@ def check_if_model_files_exist(gen_model: GenerateDataModel):
     return compare_lists(extra_files_list, repo_files)
 
 
-def create_tmp_model_store(mar_output, mar_name):
+def create_tmp_model_store(mar_output: str, mar_name: str) -> str:
     """
     This function creates a temporary directory in model store in which
     the MAR file will be stored temporarily.
@@ -132,7 +135,7 @@ def create_tmp_model_store(mar_output, mar_name):
     return tmp_dir
 
 
-def move_mar(gen_model: GenerateDataModel, tmp_dir):
+def move_mar(gen_model: GenerateDataModel, tmp_dir: str) -> None:
     """
     This funtion moves MAR file from the temporary directory to model store.
 
@@ -148,7 +151,7 @@ def move_mar(gen_model: GenerateDataModel, tmp_dir):
     mv_file(src, dst)
 
 
-def read_config_for_download(gen_model: GenerateDataModel):
+def read_config_for_download(gen_model: GenerateDataModel) -> GenerateDataModel:
     """
     This function reads repo id, version and handler name from
     model_config.json and sets values for the GenerateDataModel object.
@@ -245,7 +248,7 @@ def read_config_for_download(gen_model: GenerateDataModel):
     return gen_model
 
 
-def run_download(gen_model: GenerateDataModel):
+def run_download(gen_model: GenerateDataModel) -> GenerateDataModel:
     """
     This function checks if the given model path directory is empty and then
     downloads the given version's model files at that path.
@@ -277,7 +280,7 @@ def run_download(gen_model: GenerateDataModel):
     return gen_model
 
 
-def create_mar(gen_model: GenerateDataModel):
+def create_mar(gen_model: GenerateDataModel) -> None:
     """
     This function checks if the Model Archive (MAR) file for the downloaded
     model exists in the specified model path otherwise generates the MAR file.
@@ -313,7 +316,7 @@ def create_mar(gen_model: GenerateDataModel):
     )
 
 
-def run_script(params):
+def run_script(params: argparse.Namespace) -> bool:
     """
     This function validates input parameters, downloads model files and
     creates model archive file (MAR file) for the given model.
@@ -321,6 +324,8 @@ def run_script(params):
     Args:
         params (Namespace): An argparse.Namespace object containing command-line arguments.
                 These are the necessary parameters and configurations for the script.
+    Returns:
+        bool: True for successful execution and False otherwise (used for testing)
     """
     gen_model = GenerateDataModel(params)
     gen_model = read_config_for_download(gen_model)

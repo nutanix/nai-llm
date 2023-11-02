@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import traceback
+from typing import List, Dict
 import requests
 import utils.tsutils as ts
 import utils.system_utils as su
@@ -14,7 +15,7 @@ from utils.inference_data_model import (
 )
 
 
-def error_msg_print():
+def error_msg_print() -> None:
     """
     This function prints an error message and stops Torchserve.
     """
@@ -24,7 +25,7 @@ def error_msg_print():
     ts.stop_torchserve()
 
 
-def start_ts_server(ts_data: TorchserveStartData, debug):
+def start_ts_server(ts_data: TorchserveStartData, debug: bool) -> None:
     """
     This function starts Torchserve by calling start_torchserve from tsutils
     and throws error if it doesn't start.
@@ -39,7 +40,7 @@ def start_ts_server(ts_data: TorchserveStartData, debug):
         sys.exit(1)
 
 
-def ts_health_check(model_name, model_timeout=1200):
+def ts_health_check(model_name: str, model_timeout: int = 1200) -> None:
     """
     This function checks if the model is registered or not.
     Args:
@@ -70,7 +71,7 @@ def ts_health_check(model_name, model_timeout=1200):
         sys.exit(1)
 
 
-def execute_inference_on_inputs(model_inputs, model_name):
+def execute_inference_on_inputs(model_inputs: List[str], model_name: str) -> None:
     """
     This function runs inference on given input data files and model name by
     calling run_inference from tsutils.
@@ -100,7 +101,7 @@ def execute_inference_on_inputs(model_inputs, model_name):
             sys.exit(1)
 
 
-def validate_inference_model(models_to_validate, debug):
+def validate_inference_model(models_to_validate: List[Dict], debug: bool) -> None:
     """
     This function consolidates model name and input to use for inference
     and calls execute_inference_on_inputs
@@ -122,7 +123,7 @@ def validate_inference_model(models_to_validate, debug):
         print(f"## {model_name} Handler is stable. \n")
 
 
-def get_inference(data_model: InferenceDataModel, debug):
+def get_inference(data_model: InferenceDataModel, debug: bool) -> None:
     """
     This function starts Torchserve, runs health check of server, registers model,
     and runs inference on input folder path. It catches KeyError and HTTPError exceptions

@@ -2,6 +2,7 @@
 This module stores the dataclasses InferenceDataModel, TorchserveStartData
 and function prepare_settings to set the InferenceDataModel's ts_data.
 """
+import argparse
 import os
 import dataclasses
 
@@ -46,7 +47,7 @@ class InferenceDataModel:
     mar_filepath = str()
     ts_data = TorchserveStartData()
 
-    def __init__(self, params):
+    def __init__(self, params: argparse.Namespace) -> None:
         """
         This is the init method that calls set_data_model method.
 
@@ -55,7 +56,7 @@ class InferenceDataModel:
         """
         self.set_data_model(params)
 
-    def set_data_model(self, args):
+    def set_data_model(self, args: argparse.Namespace) -> None:
         """
         This method sets model_name, input_path, gen_folder, mar_filepath,
         repo_version attributes of the InferenceDataModel class.
@@ -69,7 +70,7 @@ class InferenceDataModel:
         self.mar_filepath = args.mar
         self.repo_version = args.repo_version
 
-    def prepare_settings(self):
+    def prepare_settings(self) -> None:
         """
         This method sets ts_data attribute of InferenceDataModel class,
         sets environment variables LOG_LOCATION and METRICS_LOCATION and makes gen folder.

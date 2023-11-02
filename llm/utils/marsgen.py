@@ -7,6 +7,7 @@ Attributes:
 import os
 import sys
 import subprocess
+from typing import Dict
 from utils.system_utils import check_if_path_exists, get_all_files_in_directory
 from utils.generate_data_model import GenerateDataModel
 
@@ -14,7 +15,9 @@ from utils.generate_data_model import GenerateDataModel
 MAR_NAME_LEN = 7
 
 
-def get_mar_name(model_name, repo_version, is_custom_model=False):
+def get_mar_name(
+    model_name: str, repo_version: str, is_custom_model: str = False
+) -> str:
     """
     This function returns MAR file name using model name and repo version.
 
@@ -35,8 +38,11 @@ def get_mar_name(model_name, repo_version, is_custom_model=False):
 
 
 def generate_mars(
-    gen_model: GenerateDataModel, mar_config, model_store_dir, debug=False
-):
+    gen_model: GenerateDataModel,
+    mar_config: str,
+    model_store_dir: str,
+    debug: str = False,
+) -> None:
     """
     This function runs Torch Model Archiver command to generate MAR file. It calls the
     model_archiver_command_builder function to generate the command which it then runs
@@ -99,12 +105,15 @@ def generate_mars(
     os.chdir(cwd)
 
 
-def model_archiver_command_builder(model_archiver_args, debug=False):
+def model_archiver_command_builder(
+    model_archiver_args: Dict[str, str], debug: bool = False
+) -> str:
     """
     This function makes the Torch Model Archiver command using model_archiver_args parameter.
 
     Args:
-        model_archiver_args (dict): Contains
+        model_archiver_args (dict): Contains dictionary of arguments required to generate
+        torch model archiever command
         debug (bool, optional): Flag to print debug statements. Defaults to False.
 
     Returns:

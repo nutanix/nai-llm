@@ -11,6 +11,7 @@ import os
 import platform
 import time
 import json
+from typing import Tuple, Dict
 import requests
 from utils.inference_data_model import InferenceDataModel, TorchserveStartData
 from utils.system_utils import check_if_path_exists
@@ -30,7 +31,7 @@ torch_model_archiver_command = {
 }
 
 
-def generate_ts_start_cmd(ncs, ts_data: TorchserveStartData, debug):
+def generate_ts_start_cmd(ts_data: TorchserveStartData, ncs: bool, debug: bool) -> str:
     """
     This function generates the Torchserve start command.
 
@@ -59,7 +60,12 @@ def generate_ts_start_cmd(ncs, ts_data: TorchserveStartData, debug):
     return cmd
 
 
-def start_torchserve(ts_data: TorchserveStartData, ncs=True, wait_for=10, debug=False):
+def start_torchserve(
+    ts_data: TorchserveStartData,
+    ncs: bool = True,
+    wait_for: int = 10,
+    debug: bool = False,
+) -> bool:
     """
     This function calls generate_ts_start_cmd function to get the Torchserve start command
     and runs the same to start Torchserve.
@@ -74,7 +80,7 @@ def start_torchserve(ts_data: TorchserveStartData, ncs=True, wait_for=10, debug=
         bool: True for successful Torchserve start and False otherwise
     """
     print("\n## Starting TorchServe \n")
-    cmd = generate_ts_start_cmd(ncs, ts_data, debug)
+    cmd = generate_ts_start_cmd(ts_data, ncs, debug)
     if debug:
         print(cmd)
     status = os.system(cmd)
@@ -87,7 +93,7 @@ def start_torchserve(ts_data: TorchserveStartData, ncs=True, wait_for=10, debug=
     return False
 
 
-def stop_torchserve(wait_for=10):
+def stop_torchserve(wait_for: int = 10) -> bool:
     """
     This function is used to stop Torchserve.
 
@@ -113,7 +119,7 @@ def stop_torchserve(wait_for=10):
     return False
 
 
-def set_config_properties(data_model: InferenceDataModel):
+def set_config_properties(data_model: InferenceDataModel) -> None:
     """
     This function creates a configuration file for the model and sets certain parameters.
     Args:
@@ -157,7 +163,7 @@ def set_config_properties(data_model: InferenceDataModel):
     data_model.ts_data.ts_config_file = dst_config_path
 
 
-def set_model_params(model_name):
+def set_model_params(model_name: str) -> None:
     """
     This function reads generation parameters from model_config.json and sets them as
     environment variables for the handler to read. The generation parameters are :
@@ -192,7 +198,7 @@ def set_model_params(model_name):
                         del os.environ[param_name]
 
 
-def get_params_for_registration(model_name):
+def get_params_for_registration(model_name: str) -> Tuple[str, str, str, str]:
     """
     This function reads registration parameters from model_config.json returns them.
     The generation parameters are :
@@ -202,7 +208,8 @@ def get_params_for_registration(model_name):
         model_name (str): Name of the model.
 
     Returns:
-        str: initial_workers, batch_size, max_batch_delay, response_timeout
+        Tuple[str, str, str, str]: initial_workers, batch_size, max_batch_delay,
+                                    response_timeout
     """
     dirpath = os.path.dirname(__file__)
     initial_workers = batch_size = max_batch_delay = response_timeout = None
@@ -229,8 +236,12 @@ def get_params_for_registration(model_name):
 
 
 def run_inference_text_input(
-    model_inference_data, protocol="http", host="localhost", port="8080", timeout=120
-):
+    model_inference_data: Dict,
+    protocol: str = "http",
+    host: str = "localhost",
+    port: str = "8080",
+    timeout: int = 120,
+) -> requests.Response:
     """
     This function sends request to run inference on Torchserve for input in text format.
 
@@ -257,8 +268,12 @@ def run_inference_text_input(
 
 
 def run_inference_json_input(
-    model_inference_data, protocol="http", host="localhost", port="8080", timeout=120
-):
+    model_inference_data: Dict,
+    protocol: str = "http",
+    host: str = "localhost",
+    port: str = "8080",
+    timeout: int = 120,
+) -> requests.Response:
     """
     This function sends request to run inference on Torchserve for input in json.
 
@@ -285,8 +300,12 @@ def run_inference_json_input(
 
 
 def run_health_check(
-    model_name, protocol="http", host="localhost", port="8081", timeout=120
-):
+    model_name: str,
+    protocol: str = "http",
+    host: str = "localhost",
+    port: str = "8081",
+    timeout: int = 120,
+) -> bool:
     """
     This function runs a health check for the workers of the deployed model
 

@@ -26,7 +26,7 @@ MODEL_CONFIG_PATH = os.path.join(
 MODEL_TEMP_CONFIG_PATH = os.path.join(MODEL_STORE, "temp_model_config.json")
 
 
-def rm_dir(path):
+def rm_dir(path: str) -> None:
     """
     This function deletes a directory.
 
@@ -39,7 +39,7 @@ def rm_dir(path):
         shutil.rmtree(path)
 
 
-def download_setup():
+def download_setup() -> None:
     """
     This function deletes and creates model store and
     model path directories.
@@ -50,7 +50,7 @@ def download_setup():
     os.makedirs(MODEL_STORE)
 
 
-def cleanup_folders():
+def cleanup_folders() -> None:
     """
     This function deletes model store and model path directories.
     """
@@ -59,12 +59,12 @@ def cleanup_folders():
 
 
 def set_generate_args(
-    model_name=MODEL_NAME,
-    repo_version="",
-    model_path=MODEL_PATH,
-    mar_output=MODEL_STORE,
-    handler_path="",
-):
+    model_name: str = MODEL_NAME,
+    repo_version: str = "",
+    model_path: str = MODEL_PATH,
+    mar_output: str = MODEL_STORE,
+    handler_path: str = "",
+) -> argparse.Namespace:
     """
     This function sets the arguments to run download.py.
 
@@ -89,7 +89,7 @@ def set_generate_args(
     return args
 
 
-def test_default_generate_success():
+def test_default_generate_success() -> None:
     """
     This function tests the default GPT2 model.
     Expected result: Success.
@@ -104,7 +104,7 @@ def test_default_generate_success():
         assert result is True
 
 
-def test_wrong_model_store_throw_error():
+def test_wrong_model_store_throw_error() -> None:
     """
     This function tests wrong model store path.
     Expected result: Failure.
@@ -119,7 +119,7 @@ def test_wrong_model_store_throw_error():
         assert False
 
 
-def test_wrong_model_path_throw_error():
+def test_wrong_model_path_throw_error() -> None:
     """
     This function tests wrong model files path.
     Expected result: Failure.
@@ -134,7 +134,7 @@ def test_wrong_model_path_throw_error():
         assert False
 
 
-def test_non_empty_model_path_throw_error():
+def test_non_empty_model_path_throw_error() -> None:
     """
     This function tests non empty model files path without skip download.
     Expected result: Failure.
@@ -151,7 +151,7 @@ def test_non_empty_model_path_throw_error():
         assert False
 
 
-def test_invalid_repo_version_throw_error():
+def test_invalid_repo_version_throw_error() -> None:
     """
     This function tests invalid repo version.
     Expected result: Failure.
@@ -166,7 +166,7 @@ def test_invalid_repo_version_throw_error():
         assert False
 
 
-def test_valid_repo_version_success():
+def test_valid_repo_version_success() -> None:
     """
     This function tests valid repo version.
     Expected result: Success.
@@ -181,7 +181,7 @@ def test_valid_repo_version_success():
         assert result is True
 
 
-def test_invalid_handler_throw_error():
+def test_invalid_handler_throw_error() -> None:
     """
     This function tests invalid handler path.
     Expected result: Failure.
@@ -196,7 +196,7 @@ def test_invalid_handler_throw_error():
         assert False
 
 
-def test_skip_download_throw_error():
+def test_skip_download_throw_error() -> None:
     """
     This function tests skip download without model files.
     Expected result: Failure.
@@ -212,7 +212,7 @@ def test_skip_download_throw_error():
         assert False
 
 
-def test_mar_exists_throw_error():
+def test_mar_exists_throw_error() -> None:
     """
     This function tests if MAR file already exists.
     Expected result: Exits.
@@ -228,7 +228,7 @@ def test_mar_exists_throw_error():
         assert False
 
 
-def test_skip_download_success():
+def test_skip_download_success() -> None:
     """
     This function tests skip download case.
     Expected result: Success.
@@ -250,7 +250,7 @@ def test_skip_download_success():
         assert result is True
 
 
-def custom_model_setup():
+def custom_model_setup() -> None:
     """
     This function is used to setup custom model case.
     It runs download.py to download model files and
@@ -267,7 +267,7 @@ def custom_model_setup():
         json.dump({}, file)
 
 
-def custom_model_restore():
+def custom_model_restore() -> None:
     """
     This function restores the 'model_config.json' file
     and runs cleanup_folders function.
@@ -277,7 +277,7 @@ def custom_model_restore():
     cleanup_folders()
 
 
-def test_custom_model_success():
+def test_custom_model_success() -> None:
     """
     This function tests the custom model case.
     This is done by clearing the 'model_config.json' and
