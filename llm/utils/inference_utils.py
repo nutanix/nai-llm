@@ -3,15 +3,20 @@ This module contains utilities to start and manage Torchserve server.
 """
 import os
 import sys
+import time
 import traceback
-import torch
+from typing import List, Dict
+import json
 import requests
 import utils.tsutils as ts
 import utils.system_utils as su
-import utils.inference_data_model as idm
+from utils.inference_data_model import (
+    InferenceDataModel,
+    TorchserveStartData,
+)
 
 
-def error_msg_print():
+def error_msg_print() -> None:
     """
     This function prints an error message and stops Torchserve.
     """
@@ -21,47 +26,53 @@ def error_msg_print():
     ts.stop_torchserve()
 
 
-def set_compute_setting(gpus):
-    """
-    This function read the compute setting (either GPU or CPU).
-
-    Args:
-        gpus (int): Number of GPUs.
-    """
-    if gpus > 0 and su.is_gpu_instance():
-        if not torch.cuda.is_available():
-            sys.exit("## CUDA not found \n")
-        print(f"\n## Running on {gpus} GPU(s) \n")
-
-    else:
-        print("\n## Running on CPU \n")
-        gpus = 0
-
-
-def ts_health_check():
-    """
-    This function makes health check request to server.
-    """
-    os.system("curl localhost:8080/ping")
-
-
-def start_ts_server(ts_data, gpus, debug):
+def start_ts_server(ts_data: TorchserveStartData, debug: bool) -> None:
     """
     This function starts Torchserve by calling start_torchserve from tsutils
     and throws error if it doesn't start.
 
     Args:
         ts_data (TorchserveStartData): Stores information required to start Torchserve.
-        gpus (int): Number of GPUs.
         debug (bool): Flag to print debug statements.
     """
-    started = ts.start_torchserve(ts_data=ts_data, gpus=gpus, debug=debug)
+    started = ts.start_torchserve(ts_data=ts_data, debug=debug)
     if not started:
         error_msg_print()
         sys.exit(1)
 
 
-def execute_inference_on_inputs(model_inputs, model_name):
+def ts_health_check(model_name: str, model_timeout: int = 1200) -> None:
+    """
+    This function checks if the model is registered or not.
+    Args:
+      model_name (str): The name of the model that is being registered.
+      deploy_name (str): The name of the server where the model is registered.
+      model_timeout (int): Maximum amount of time to wait for a response from server.
+    Raises:
+        requests.exceptions.RequestException: In case of request errors.
+        KeyError: In case of key errors while reading response JSON.
+    """
+    retry_count = 0
+    sleep_time = 15
+    success = False
+    while not success and retry_count * sleep_time < model_timeout:
+        try:
+            success = ts.run_health_check(model_name)
+        except (requests.exceptions.RequestException, KeyError):
+            pass
+        if not success:
+            time.sleep(sleep_time)
+            retry_count += 1
+    if success:
+        print("## Health check passed. Model registered.\n")
+    else:
+        print(
+            f"## Failed health check after multiple retries for model - {model_name} \n"
+        )
+        sys.exit(1)
+
+
+def execute_inference_on_inputs(model_inputs: List[str], model_name: str) -> None:
     """
     This function runs inference on given input data files and model name by
     calling run_inference from tsutils.
@@ -72,7 +83,19 @@ def execute_inference_on_inputs(model_inputs, model_name):
     """
     for data in model_inputs:
         model_inference_data = (model_name, data)
-        response = ts.run_inference(model_inference_data)
+
+        try:
+            with open(data, "r", encoding="utf-8") as file:
+                json.loads(file.read())
+            is_json_content_type = True
+        except ValueError:
+            is_json_content_type = False
+
+        response = (
+            ts.run_inference_json_input(model_inference_data)
+            if is_json_content_type
+            else ts.run_inference_text_input(model_inference_data)
+        )
         if response and response.status_code == 200:
             print(
                 f"## Successfully ran inference on {model_name} model."
@@ -84,42 +107,7 @@ def execute_inference_on_inputs(model_inputs, model_name):
             sys.exit(1)
 
 
-def register_model(model_name, input_mar, gpus):
-    """
-    This function registers model on Torchserve by calling register_model from tsutils.
-
-    Args:
-        model_name (str): Name of the model.
-        input_mar (str): Path to input data directory.
-        gpus (int): Number of GPUs.
-    """
-    model_register_data = (model_name, input_mar)
-    response = ts.register_model(model_register_data, gpus)
-    if response and response.status_code == 200:
-        print(f"## Successfully registered {model_name} model with torchserve \n")
-    else:
-        print("## Failed to register model with torchserve \n")
-        error_msg_print()
-        sys.exit(1)
-
-
-def unregister_model(model_name):
-    """
-    This function unregisters model on Torchserve by calling unregister_model from tsutils.
-
-    Args:
-        model_name (str): Name of the model.
-    """
-    response = ts.unregister_model(model_name)
-    if response and response.status_code == 200:
-        print(f"## Successfully unregistered {model_name} \n")
-    else:
-        print(f"## Failed to unregister {model_name} \n")
-        error_msg_print()
-        sys.exit(1)
-
-
-def validate_inference_model(models_to_validate, debug):
+def validate_inference_model(models_to_validate: List[Dict], debug: bool) -> None:
     """
     This function consolidates model name and input to use for inference
     and calls execute_inference_on_inputs
@@ -133,6 +121,7 @@ def validate_inference_model(models_to_validate, debug):
         model_name = model["name"]
         model_inputs = model["inputs"]
 
+        print(f"## Running inference on {model_name} model \n")
         execute_inference_on_inputs(model_inputs, model_name)
 
         if debug:
@@ -140,48 +129,37 @@ def validate_inference_model(models_to_validate, debug):
         print(f"## {model_name} Handler is stable. \n")
 
 
-def get_inference_internal(data_model, debug):
+def get_inference(data_model: InferenceDataModel, debug: bool) -> None:
     """
     This function starts Torchserve, runs health check of server, registers model,
-    and runs inference on input folder path.
+    and runs inference on input folder path. It catches KeyError and HTTPError exceptions
 
     Args:
         data_model (InferenceDataModel): Dataclass containing information for running Torchserve.
         debug (bool): Flag to print debug statements.
+    Raises:
+        KeyError: In case of reading JSON files.
+        requests.exceptions.RequestException: In case of request errors.
     """
-    set_compute_setting(data_model.gpus)
-    start_ts_server(ts_data=data_model.ts_data, gpus=data_model.gpus, debug=debug)
-    ts_health_check()
-    register_model(data_model.model_name, data_model.mar_filepath, data_model.gpus)
+    data_model.prepare_settings()
+    ts.set_config_properties(data_model)
 
-    if data_model.input_path:
-        # get relative paths of files
-        inputs = su.get_all_files_in_directory(data_model.input_path)
-        # prefix with model path
-        inputs = [os.path.join(data_model.input_path, file) for file in inputs]
-        inference_model = {
-            "name": data_model.model_name,
-            "inputs": inputs,
-        }
+    start_ts_server(ts_data=data_model.ts_data, debug=debug)
+    ts_health_check(data_model.model_name)
 
-        models_to_validate = [inference_model]
-
-        if inputs:
-            validate_inference_model(models_to_validate, debug)
-
-
-def get_inference_with_mar(data_model, debug=False):
-    """
-    This function sets ts_data in data_model (InferenceDataModel), and calls get_inference_internal,
-    and catches any execptions caused by sending requests.
-
-    Args:
-        data_model (InferenceDataModel): Dataclass containing information for running Torchserve.
-        debug (bool, optional): Flag to print debug statements. Defaults to False.
-    """
     try:
-        data_model = idm.prepare_settings(data_model)
-        get_inference_internal(data_model, debug=debug)
+        if data_model.input_path:
+            # get relative paths of files
+            inputs = su.get_all_files_in_directory(data_model.input_path)
+            # prefix with model path
+            inputs = [os.path.join(data_model.input_path, file) for file in inputs]
+            inference_model = {
+                "name": data_model.model_name,
+                "inputs": inputs,
+            }
+            models_to_validate = [inference_model]
+            if inputs:
+                validate_inference_model(models_to_validate, debug)
     except (KeyError, requests.exceptions.RequestException):
         error_msg_print()
         if debug:

@@ -11,7 +11,12 @@ import os
 import platform
 import time
 import json
+from typing import Tuple, Dict
 import requests
+from utils.inference_data_model import InferenceDataModel, TorchserveStartData
+from utils.system_utils import check_if_path_exists
+from utils.shell_utils import copy_file
+
 
 torchserve_command = {
     "Windows": "torchserve.exe",
@@ -26,20 +31,19 @@ torch_model_archiver_command = {
 }
 
 
-def generate_ts_start_cmd(ncs, ts_data, gpus, debug):
+def generate_ts_start_cmd(ts_data: TorchserveStartData, ncs: bool, debug: bool) -> str:
     """
     This function generates the Torchserve start command.
 
     Args:
         ncs (bool): To enable '--no-config-snapshots' in Torchserve.
         ts_data (TorchserveStartData): Stores information required to start Torchserve.
-        gpus (int): To set number of GPUs.
         debug (bool): Flag to print debug statements.
 
     Returns:
         str: The Torchserve start command.
     """
-    cmd = f"TS_NUMBER_OF_GPU={gpus} {torchserve_command[platform.system()]}"
+    cmd = f"{torchserve_command[platform.system()]}"
     cmd += f" --start --model-store={ts_data.ts_model_store}"
     if ncs:
         cmd += " --ncs"
@@ -56,7 +60,12 @@ def generate_ts_start_cmd(ncs, ts_data, gpus, debug):
     return cmd
 
 
-def start_torchserve(ts_data, ncs=True, wait_for=10, gpus=0, debug=False):
+def start_torchserve(
+    ts_data: TorchserveStartData,
+    ncs: bool = True,
+    wait_for: int = 10,
+    debug: bool = False,
+) -> bool:
     """
     This function calls generate_ts_start_cmd function to get the Torchserve start command
     and runs the same to start Torchserve.
@@ -65,25 +74,26 @@ def start_torchserve(ts_data, ncs=True, wait_for=10, gpus=0, debug=False):
         ncs (bool, optional): To enable '--no-config-snapshots' in Torchserve. Defaults to True.
         ts_data (TorchserveStartData): Stores data required to start Torchserve. Defaults to None.
         wait_for (int, optional): Wait time(in secs) after running command. Defaults to 10.
-        gpus (int, optional): Number of GPUs. Defaults to 0.
         debug (bool, optional): Flag to print debug statements. Defaults to False.
 
     Returns:
         bool: True for successful Torchserve start and False otherwise
     """
-    print("## Starting TorchServe \n")
-    cmd = generate_ts_start_cmd(ncs, ts_data, gpus, debug)
-    print(cmd)
+    print("\n## Starting TorchServe \n")
+    cmd = generate_ts_start_cmd(ts_data, ncs, debug)
+    if debug:
+        print(cmd)
     status = os.system(cmd)
     if status == 0:
         print("## Successfully started TorchServe \n")
         time.sleep(wait_for)
+        print("## Registering model: this might take a while\n")
         return True
     print("## TorchServe failed to start ! Make sure it's not running already\n")
     return False
 
 
-def stop_torchserve(wait_for=10):
+def stop_torchserve(wait_for: int = 10) -> bool:
     """
     This function is used to stop Torchserve.
 
@@ -109,7 +119,51 @@ def stop_torchserve(wait_for=10):
     return False
 
 
-def set_model_params(model_name):
+def set_config_properties(data_model: InferenceDataModel) -> None:
+    """
+    This function creates a configuration file for the model and sets certain parameters.
+    Args:
+        data_model (InferenceDataModel): An instance of the InferenceDataModel
+                                      class with relevant information.
+    Returns:
+        None
+    """
+    template_config_path = data_model.ts_data.ts_config_file
+    check_if_path_exists(template_config_path, "config.properties file", is_dir=False)
+
+    dir_path = os.path.dirname(__file__)
+    dst_config_path = os.path.join(dir_path, data_model.gen_folder, "config.properties")
+    copy_file(template_config_path, dst_config_path)
+    check_if_path_exists(
+        dst_config_path, "config.properties file in gen folder", is_dir=False
+    )
+
+    (
+        initial_workers,
+        batch_size,
+        max_batch_delay,
+        response_timeout,
+    ) = get_params_for_registration(data_model.model_name)
+
+    mar_name = os.path.basename(data_model.mar_filepath)
+
+    config_info = [
+        f'\nmodel_snapshot={{"name":"startup.cfg","modelCount":1,'
+        f'"models":{{"{data_model.model_name}":{{'
+        f'"{data_model.repo_version}":{{"defaultVersion":true,"marName":"{mar_name}",'
+        f'"minWorkers":{initial_workers or 1},'
+        f'"maxWorkers":{initial_workers or 1},'
+        f'"batchSize":{batch_size or 1},'
+        f'"maxBatchDelay":{max_batch_delay or 1},'
+        f'"responseTimeout":{response_timeout or 120}}}}}}}}}',
+    ]
+    with open(dst_config_path, "a", encoding="utf-8") as config_file:
+        config_file.writelines(config_info)
+
+    data_model.ts_data.ts_config_file = dst_config_path
+
+
+def set_model_params(model_name: str) -> None:
     """
     This function reads generation parameters from model_config.json and sets them as
     environment variables for the handler to read. The generation parameters are :
@@ -144,7 +198,7 @@ def set_model_params(model_name):
                         del os.environ[param_name]
 
 
-def get_params_for_registration(model_name):
+def get_params_for_registration(model_name: str) -> Tuple[str, str, str, str]:
     """
     This function reads registration parameters from model_config.json returns them.
     The generation parameters are :
@@ -154,7 +208,8 @@ def get_params_for_registration(model_name):
         model_name (str): Name of the model.
 
     Returns:
-        str: initial_workers, batch_size, max_batch_delay, response_timeout
+        Tuple[str, str, str, str]: initial_workers, batch_size, max_batch_delay,
+                                    response_timeout
     """
     dirpath = os.path.dirname(__file__)
     initial_workers = batch_size = max_batch_delay = response_timeout = None
@@ -180,60 +235,21 @@ def get_params_for_registration(model_name):
     return initial_workers, batch_size, max_batch_delay, response_timeout
 
 
-def register_model(
-    model_register_data, gpus, protocol="http", host="localhost", port="8081"
-):
+def run_inference_text_input(
+    model_inference_data: Dict,
+    protocol: str = "http",
+    host: str = "localhost",
+    port: str = "8080",
+    timeout: int = 120,
+) -> requests.Response:
     """
-    This functions is used to register a model on Torchserve.
-
-    Args:
-        model_register_data (str, str): The model name and MAR file name
-        gpus (int): Number of GPUs
-        protocol (str, optional): Request protocol. Defaults to "http".
-        host (str, optional): Request host. Defaults to "localhost".
-        port (str, optional): Request Port. Defaults to "8081".
-
-    Returns:
-        requests.Response: Reponse of the registration request
-    """
-    model_name, marfile = model_register_data
-    print(f"\n## Registering {model_name} model, this might take a while \n")
-    (
-        initial_workers,
-        batch_size,
-        max_batch_delay,
-        response_timeout,
-    ) = get_params_for_registration(model_name)
-    if (
-        initial_workers is None
-    ):  # setting the default value of workers to number of gpus
-        initial_workers = gpus
-
-    params = (
-        ("url", marfile),
-        ("initial_workers", initial_workers or 1),
-        ("batch_size", batch_size or 1),
-        ("max_batch_delay", max_batch_delay or 200),
-        ("response_timeout", response_timeout or 2000),
-        ("synchronous", "true"),
-    )
-
-    url = f"{protocol}://{host}:{port}/models"
-    response = requests.post(url, params=params, verify=False, timeout=response_timeout)
-    return response
-
-
-def run_inference(
-    model_inference_data, protocol="http", host="localhost", port="8080", timeout=120
-):
-    """
-    This function sends request to run inference on Torchserve.
+    This function sends request to run inference on Torchserve for input in text format.
 
     Args:
         model_inference_data (str, list(str)): The model name and paths of input files.
         protocol (str, optional): Request protocol. Defaults to "http".
         host (str, optional): Request host. Defaults to "localhost".
-        port (str, optional): Request Port. Defaults to "8081".
+        port (str, optional): Request Port. Defaults to "8080".
         timeout (int, optional): Request timeout (sec). Defaults to 120.
 
     Returns:
@@ -241,32 +257,72 @@ def run_inference(
     """
     model_name, file_name = model_inference_data
 
-    print(f"## Running inference on {model_name} model \n")
     url = f"{protocol}://{host}:{port}/predictions/{model_name}"
-    files = {}
-    with open(file_name, "rb") as file:
-        files["data"] = (file_name, file)
-        response = requests.post(url, files=files, timeout=timeout)
-    print(response)
+    headers = {"Content-Type": "application/text; charset=utf-8"}
+
+    with open(file_name, "r", encoding="utf-8") as file:
+        data = file.read()
+
+    response = requests.post(url, data=data, timeout=timeout, headers=headers)
     return response
 
 
-def unregister_model(
-    model_name, protocol="http", host="localhost", port="8081", timeout=200
-):
+def run_inference_json_input(
+    model_inference_data: Dict,
+    protocol: str = "http",
+    host: str = "localhost",
+    port: str = "8080",
+    timeout: int = 120,
+) -> requests.Response:
     """
-    This function sends request to unregister model on Torchserve.
+    This function sends request to run inference on Torchserve for input in json.
 
     Args:
-        model_name (str): Name of the model
+        model_inference_data (str, list(str)): The model name and paths of input files.
+        protocol (str, optional): Request protocol. Defaults to "http".
+        host (str, optional): Request host. Defaults to "localhost".
+        port (str, optional): Request Port. Defaults to "8080".
+        timeout (int, optional): Request timeout (sec). Defaults to 120.
+
+    Returns:
+        requests.Response: Reponse of the inference request
+    """
+    model_name, file_name = model_inference_data
+
+    url = f"{protocol}://{host}:{port}/predictions/{model_name}"
+    headers = {"Content-Type": "application/json; charset=utf-8"}
+
+    with open(file_name, "r", encoding="utf-8") as file:
+        data = json.loads(file.read())
+
+    response = requests.post(url, json=data, timeout=timeout, headers=headers)
+    return response
+
+
+def run_health_check(
+    model_name: str,
+    protocol: str = "http",
+    host: str = "localhost",
+    port: str = "8081",
+    timeout: int = 120,
+) -> bool:
+    """
+    This function runs a health check for the workers of the deployed model
+
+    Args:
+        model_name (str): The name of the model.
         protocol (str, optional): Request protocol. Defaults to "http".
         host (str, optional): Request host. Defaults to "localhost".
         port (str, optional): Request Port. Defaults to "8081".
+        timeout (int, optional): Request timeout (sec). Defaults to 120.
 
     Returns:
-        requests.Response: Reponse of the unregister request
+        bool: True for succesful health check and false otherwise.
     """
-    print(f"## Unregistering {model_name} model \n")
     url = f"{protocol}://{host}:{port}/models/{model_name}"
-    response = requests.delete(url, verify=False, timeout=timeout)
-    return response
+    response = requests.get(url, timeout=timeout)
+    workers = response.json()[0]["workers"]
+    for worker in workers:
+        if worker["status"] != "READY":
+            return False
+    return True

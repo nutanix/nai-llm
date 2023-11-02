@@ -1,0 +1,11 @@
+{
+  "id": "42",
+  "inputs": [
+      {
+          "name": "input0",
+          "shape": [-1],
+          "datatype": "BYTES",
+          "data": ["Translate 'All the best' into French\nAnswer:"]
+      }
+  ]
+}

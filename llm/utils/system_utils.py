@@ -5,8 +5,6 @@ Attributes:
     nvidia_smi_cmd (dict): Contains the nvidia-smi command in different operating systems.
 """
 import os
-import platform
-import subprocess
 import sys
 from pathlib import Path
 
@@ -17,26 +15,7 @@ nvidia_smi_cmd = {
 }
 
 
-def is_gpu_instance():
-    """
-    This function checks if CUDA drivers are installed and GPU is present.
-
-    Raises:
-        exp: Exception caused if CUDA drivers are not installed (nvidia-smi not found).
-
-    Returns:
-        bool: True if CUDA drivers exist and GPU is present.
-    """
-    try:
-        subprocess.check_output(nvidia_smi_cmd[platform.system()])
-        print("\n## Nvidia GPU detected!")
-        return True
-    except subprocess.CalledProcessError as exp:
-        print("\n## No Nvidia GPU in system!")
-        raise exp
-
-
-def check_if_path_exists(filepath, err="", is_dir=False):
+def check_if_path_exists(filepath: str, err: str = "", is_dir: bool = False) -> None:
     """
     This function checks if a given path exists.
 
@@ -52,7 +31,7 @@ def check_if_path_exists(filepath, err="", is_dir=False):
         sys.exit(1)
 
 
-def create_folder_if_not_exists(path):
+def create_folder_if_not_exists(path: str) -> None:
     """
     This function creates a dirctory if it doesn't already exist.
 
@@ -63,7 +42,7 @@ def create_folder_if_not_exists(path):
     print(f"The new directory is created! - {path}")
 
 
-def check_if_folder_empty(path):
+def check_if_folder_empty(path: str) -> bool:
     """
     This function checks if a directory is empty.
 
@@ -77,7 +56,7 @@ def check_if_folder_empty(path):
     return len(dir_items) == 0
 
 
-def remove_suffix_if_starts_with(string, suffix):
+def remove_suffix_if_starts_with(string: str, suffix: str) -> str:
     """
     This function removes a suffix of a string is it starts with a given suffix
 

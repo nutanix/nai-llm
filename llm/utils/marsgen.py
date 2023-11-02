@@ -7,34 +7,48 @@ Attributes:
 import os
 import sys
 import subprocess
+from typing import Dict
 from utils.system_utils import check_if_path_exists, get_all_files_in_directory
+from utils.generate_data_model import GenerateDataModel
 
 # MAR_NAME_LEN - Number of characters to include from repo_version in MAR name
 MAR_NAME_LEN = 7
 
 
-def get_mar_name(model_name, repo_version):
+def get_mar_name(
+    model_name: str, repo_version: str, is_custom_model: str = False
+) -> str:
     """
     This function returns MAR file name using model name and repo version.
 
     Args:
         model_name (str): Name of the model.
         repo_version (str): Commit ID of model's repo from HuggingFace repository.
+        is_custom_model (bool): Set to True for custom models.
 
     Returns:
         str: MAR file name.
     """
-    mar_name = f"{model_name}_{repo_version[0:MAR_NAME_LEN]}"
+    mar_name = (
+        f"{model_name}"
+        if is_custom_model
+        else f"{model_name}_{repo_version[0:MAR_NAME_LEN]}"
+    )
     return mar_name
 
 
-def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
+def generate_mars(
+    gen_model: GenerateDataModel,
+    mar_config: str,
+    model_store_dir: str,
+    debug: str = False,
+) -> None:
     """
     This function runs Torch Model Archiver command to generate MAR file. It calls the
     model_archiver_command_builder function to generate the command which it then runs
 
     Args:
-        dl_model (DownloadDataModel): Dataclass that contains data required to generate MAR file.
+        gen_model (GenerateDataModel): Dataclass that contains data required to generate MAR file.
         mar_config (str): Path to model_config.json.
         model_store_dir (str): Absolute path of export of MAR file.
         debug (bool, optional): Flag to print debug statements. Defaults to False.
@@ -47,13 +61,13 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
     cwd = os.getcwd()
     os.chdir(os.path.dirname(mar_config))
 
-    handler = dl_model.mar_utils.handler_path
+    handler = gen_model.mar_utils.handler_path
     check_if_path_exists(handler, "Handler file", is_dir=False)
 
     # Reading all files in model_path to make extra_files string
-    extra_files_list = get_all_files_in_directory(dl_model.mar_utils.model_path)
+    extra_files_list = get_all_files_in_directory(gen_model.mar_utils.model_path)
     extra_files_list = [
-        os.path.join(dl_model.mar_utils.model_path, file) for file in extra_files_list
+        os.path.join(gen_model.mar_utils.model_path, file) for file in extra_files_list
     ]
     extra_files = ",".join(extra_files_list)
 
@@ -61,8 +75,8 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
     check_if_path_exists(export_path, "Model Store", is_dir=True)
 
     model_archiver_args = {
-        "model_name": dl_model.model_name,
-        "version": dl_model.repo_info.repo_version,
+        "model_name": gen_model.model_name,
+        "version": gen_model.repo_info.repo_version,
         "handler": handler,
         "extra_files": extra_files,
         "export_path": export_path,
@@ -79,24 +93,27 @@ def generate_mars(dl_model, mar_config, model_store_dir, debug=False):
         subprocess.check_call(cmd, shell=True)
         if debug:
             print(
-                f"## Model {dl_model.model_name} with version "
-                f"{dl_model.repo_info.repo_version} is generated.\n"
+                f"## Model {gen_model.model_name} with version "
+                f"{gen_model.repo_info.repo_version} is generated.\n"
             )
     except subprocess.CalledProcessError as exc:
         print("## Creation failed !\n")
         if debug:
-            print(f"## {dl_model.model_name} creation failed !, error: {exc}\n")
+            print(f"## {gen_model.model_name} creation failed !, error: {exc}\n")
         sys.exit(1)
 
     os.chdir(cwd)
 
 
-def model_archiver_command_builder(model_archiver_args, debug=False):
+def model_archiver_command_builder(
+    model_archiver_args: Dict[str, str], debug: bool = False
+) -> str:
     """
     This function makes the Torch Model Archiver command using model_archiver_args parameter.
 
     Args:
-        model_archiver_args (dict): Contains
+        model_archiver_args (dict): Contains dictionary of arguments required to generate
+        torch model archiever command
         debug (bool, optional): Flag to print debug statements. Defaults to False.
 
     Returns:

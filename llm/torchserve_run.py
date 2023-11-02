@@ -7,20 +7,19 @@ Attributes:
 """
 import os
 import argparse
-import sys
 import json
-from utils.inference_utils import get_inference_with_mar, error_msg_print
+import torch
+from utils.inference_utils import get_inference
 from utils.shell_utils import rm_dir
 import utils.tsutils as ts
-from utils.system_utils import check_if_path_exists
-from utils.system_utils import create_folder_if_not_exists, remove_suffix_if_starts_with
+from utils.system_utils import check_if_path_exists, create_folder_if_not_exists
 import utils.inference_data_model as idm
 from utils.marsgen import get_mar_name
 
 MODEL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "model_config.json")
 
 
-def read_config_for_inference(params):
+def read_config_for_inference(params: argparse.Namespace) -> argparse.Namespace:
     """
     Function that reads repo version and validates GPU type
 
@@ -36,30 +35,33 @@ def read_config_for_inference(params):
     """
     with open(MODEL_CONFIG_PATH, encoding="UTF-8") as config:
         models = json.loads(config.read())
+        params.is_custom_model = False
         if params.model_name not in models:
             print(
-                "## Please check your model name, it should be one of the following : "
+                f"## Using custom MAR file : {params.model_name}.mar\n"
+                f"WARNING: This model has not been validated\n"
             )
-            print(list(models.keys()))
-            error_msg_print()
-            sys.exit(1)
+            params.is_custom_model = True
 
-        if params.gpus > 0:
-            gpu_type_list = models[params.model_name]["gpu_type"]
-            gpu_type = remove_suffix_if_starts_with(params.gpu_type, "NVIDIA")
-            if gpu_type not in gpu_type_list:
-                print(
-                    "WARNING: This GPU Type is not validated, the validated GPU Types are:"
-                )
-                for gpu in gpu_type_list:
-                    print(gpu)
+        if torch.cuda.is_available():
+            print("## Running model on NVIDIA GPU(s)")
+            print(f"## Name of GPU(s): {torch.cuda.get_device_properties(0).name}")
+            print(f"## Number of GPUs used: {torch.cuda.device_count()}\n")
+        else:
+            print("## Running model on CPU\n")
 
-        if models[params.model_name]["repo_version"] and not params.repo_version:
+        if (
+            not params.is_custom_model
+            and models[params.model_name]["repo_version"]
+            and not params.repo_version
+        ):
             params.repo_version = models[params.model_name]["repo_version"]
     return params
 
 
-def set_mar_filepath(model_store, model_name, repo_version):
+def set_mar_filepath(
+    model_store: str, model_name: str, repo_version: str, is_custom_model: bool
+) -> str:
     """
     Funtion that creates the MAR file path given the model store, model name and repo version.
     The name of the MAR file is returned from get_mar_name from marsgen.
@@ -68,15 +70,17 @@ def set_mar_filepath(model_store, model_name, repo_version):
         model_store (str): Path to model store.
         model_name (str): Name of the model.
         repo_version (str): Commit ID of model's repo from HuggingFace repository.
+        is_custom_model (bool): Set to True for custom models.
 
     Returns:
         str: Path to MAR file.
     """
-    mar_name = f"{get_mar_name(model_name, repo_version)}.mar"
+
+    mar_name = f"{get_mar_name(model_name, repo_version, is_custom_model)}.mar"
     return os.path.join(model_store, mar_name)
 
 
-def run_inference_with_mar(params):
+def run_inference_with_mar(params: str) -> None:
     """
     Function that checks sets the required parameters, starts Torchserve, registers
     the model and runs inference on given input data.
@@ -85,11 +89,11 @@ def run_inference_with_mar(params):
         params (Namespace): An argparse.Namespace object containing command-line arguments.
                             These are the necessary parameters and configurations for the script.
     """
-    data_model = idm.set_data_model(params)
-    get_inference_with_mar(data_model, params.debug_mode)
+    data_model = idm.InferenceDataModel(params)
+    get_inference(data_model, params.debug_mode)
 
 
-def run_inference(params):
+def run_inference(params: argparse.Namespace) -> None:
     """
     This function validates model store directory, MAR file path, input data directory,
     generates the temporary gen folder to store logs and sets model generation parameters as
@@ -102,7 +106,10 @@ def run_inference(params):
     check_if_path_exists(params.model_store, "Model Store", is_dir=True)
 
     params.mar = set_mar_filepath(
-        params.model_store, params.model_name, params.repo_version
+        params.model_store,
+        params.model_name,
+        params.repo_version,
+        params.is_custom_model,
     )
     check_if_path_exists(params.mar, "MAR file", is_dir=False)
 
@@ -117,7 +124,7 @@ def run_inference(params):
     run_inference_with_mar(params)
 
 
-def torchserve_run(params):
+def torchserve_run(params: argparse.Namespace) -> None:
     """
     This function calls cleanup function, check if model config exists and then calls run_inference.
 
@@ -142,7 +149,7 @@ def torchserve_run(params):
         cleanup(params.gen_folder_name, params.stop_server, params.ts_cleanup)
 
 
-def cleanup(gen_folder, ts_stop=True, ts_cleanup=True):
+def cleanup(gen_folder: str, ts_stop: bool = True, ts_cleanup: bool = True) -> None:
     """
     This function stops Torchserve, deletes the temporary gen folder and the logs in it.
 
@@ -180,20 +187,6 @@ if __name__ == "__main__":
         default="",
         metavar="n",
         help="HuggingFace repository version",
-    )
-    parser.add_argument(
-        "--gpus",
-        type=int,
-        default=0,
-        metavar="g",
-        help="number of gpus to use for execution",
-    )
-    parser.add_argument(
-        "--gpu_type",
-        type=str,
-        default="",
-        metavar="gn",
-        help="type of gpus to use for execution",
     )
     parser.add_argument(
         "--gen_folder_name",
