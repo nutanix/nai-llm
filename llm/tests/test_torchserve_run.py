@@ -6,6 +6,7 @@ Attributes:
 """
 import os
 import subprocess
+from typing import List
 import pytest
 import download
 from tests.test_download import (
@@ -22,7 +23,7 @@ INPUT_PATH = os.path.join(
 )
 
 
-def test_generate_mar_success():
+def test_generate_mar_success() -> None:
     """
     This function calls the default testcase from test_download.py
     This is done to generate the MAR file used in the rest of the
@@ -32,8 +33,11 @@ def test_generate_mar_success():
 
 
 def get_run_cmd(
-    model_name=MODEL_NAME, model_store=MODEL_STORE, input_path="", repo_version=""
-):
+    model_name: str = MODEL_NAME,
+    model_store: str = MODEL_STORE,
+    input_path: str = "",
+    repo_version: str = "",
+) -> List[str]:
     """
     This function is used to generate the bash command to be run using given
     parameters
@@ -59,7 +63,7 @@ def get_run_cmd(
     return cmd.split()
 
 
-def test_default_success():
+def test_default_success() -> None:
     """
     This function tests the default GPT2 model with input path.
     Expected result: Success.
@@ -68,7 +72,7 @@ def test_default_success():
     assert process.returncode == 0
 
 
-def test_default_no_input_path_success():
+def test_default_no_input_path_success() -> None:
     """
     This function tests the default GPT2 model without input path.
     Expected result: Success.
@@ -77,7 +81,7 @@ def test_default_no_input_path_success():
     assert process.returncode == 0
 
 
-def test_no_model_name_throw_error():
+def test_no_model_name_throw_error() -> None:
     """
     This function tests missing model name.
     Expected result: Failure.
@@ -86,7 +90,7 @@ def test_no_model_name_throw_error():
     assert process.returncode == 1
 
 
-def test_wrong_model_name_throw_error():
+def test_wrong_model_name_throw_error() -> None:
     """
     This function tests wrong model name.
     Expected result: Failure.
@@ -95,7 +99,7 @@ def test_wrong_model_name_throw_error():
     assert process.returncode == 1
 
 
-def test_no_model_store_throw_error():
+def test_no_model_store_throw_error() -> None:
     """
     This function tests missing model store.
     Expected result: Failure.
@@ -104,7 +108,7 @@ def test_no_model_store_throw_error():
     assert process.returncode == 1
 
 
-def test_wrong_model_store_throw_error():
+def test_wrong_model_store_throw_error() -> None:
     """
     This function tests wrong model store.
     Expected result: Failure.
@@ -113,7 +117,7 @@ def test_wrong_model_store_throw_error():
     assert process.returncode == 1
 
 
-def test_wrong_input_path_throw_error():
+def test_wrong_input_path_throw_error() -> None:
     """
     This function tests wrong input path.
     Expected result: Failure.
@@ -122,7 +126,7 @@ def test_wrong_input_path_throw_error():
     assert process.returncode == 1
 
 
-def test_vaild_repo_version_success():
+def test_vaild_repo_version_success() -> None:
     """
     This function tests valid repo version.
     Expected result: Success.
@@ -134,7 +138,7 @@ def test_vaild_repo_version_success():
     assert process.returncode == 0
 
 
-def test_invalid_repo_version_throw_error():
+def test_invalid_repo_version_throw_error() -> None:
     """
     This function tests invalid repo version.
     Expected result: Failure.
@@ -145,7 +149,7 @@ def test_invalid_repo_version_throw_error():
     assert process.returncode == 1
 
 
-def test_custom_model_success():
+def test_custom_model_success() -> None:
     """
     This function tests custom model with input folder.
     Expected result: Success.

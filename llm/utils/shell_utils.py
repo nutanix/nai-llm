@@ -8,7 +8,7 @@ import glob
 from pathlib import Path
 
 
-def rm_file(path, regex=False):
+def rm_file(path: str, regex: bool = False) -> None:
     """
     This function deletes file or files in a path recursively.
 
@@ -27,7 +27,7 @@ def rm_file(path, regex=False):
             os.remove(path)
 
 
-def rm_dir(path):
+def rm_dir(path: str) -> None:
     """
     This function deletes a directory.
 
@@ -40,7 +40,7 @@ def rm_dir(path):
         shutil.rmtree(path)
 
 
-def mv_file(src, dst):
+def mv_file(src: str, dst: str) -> None:
     """
     This function moves a file from src to dst.
 
@@ -51,7 +51,7 @@ def mv_file(src, dst):
     shutil.move(src, dst)
 
 
-def copy_file(source_file, destination_file):
+def copy_file(source_file: str, destination_file: str) -> None:
     """
     This function copies a file from source file path to destination file path
     Args:
@@ -59,8 +59,6 @@ def copy_file(source_file, destination_file):
         destination_file (str): The path where the file is to be copied.
     Raises:
         Exception: If any error occurs during copying file.
-    Returns:
-        None
     """
     try:
         shutil.copy(source_file, destination_file)

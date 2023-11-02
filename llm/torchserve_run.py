@@ -19,7 +19,7 @@ from utils.marsgen import get_mar_name
 MODEL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "model_config.json")
 
 
-def read_config_for_inference(params):
+def read_config_for_inference(params: argparse.Namespace) -> argparse.Namespace:
     """
     Function that reads repo version and validates GPU type
 
@@ -59,7 +59,9 @@ def read_config_for_inference(params):
     return params
 
 
-def set_mar_filepath(model_store, model_name, repo_version, is_custom_model):
+def set_mar_filepath(
+    model_store: str, model_name: str, repo_version: str, is_custom_model: bool
+) -> str:
     """
     Funtion that creates the MAR file path given the model store, model name and repo version.
     The name of the MAR file is returned from get_mar_name from marsgen.
@@ -78,7 +80,7 @@ def set_mar_filepath(model_store, model_name, repo_version, is_custom_model):
     return os.path.join(model_store, mar_name)
 
 
-def run_inference_with_mar(params):
+def run_inference_with_mar(params: str) -> None:
     """
     Function that checks sets the required parameters, starts Torchserve, registers
     the model and runs inference on given input data.
@@ -91,7 +93,7 @@ def run_inference_with_mar(params):
     get_inference(data_model, params.debug_mode)
 
 
-def run_inference(params):
+def run_inference(params: argparse.Namespace) -> None:
     """
     This function validates model store directory, MAR file path, input data directory,
     generates the temporary gen folder to store logs and sets model generation parameters as
@@ -122,7 +124,7 @@ def run_inference(params):
     run_inference_with_mar(params)
 
 
-def torchserve_run(params):
+def torchserve_run(params: argparse.Namespace) -> None:
     """
     This function calls cleanup function, check if model config exists and then calls run_inference.
 
@@ -147,7 +149,7 @@ def torchserve_run(params):
         cleanup(params.gen_folder_name, params.stop_server, params.ts_cleanup)
 
 
-def cleanup(gen_folder, ts_stop=True, ts_cleanup=True):
+def cleanup(gen_folder: str, ts_stop: bool = True, ts_cleanup: bool = True) -> None:
     """
     This function stops Torchserve, deletes the temporary gen folder and the logs in it.
 
