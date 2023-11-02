@@ -3,6 +3,7 @@ This module stores the dataclasses GenerateDataModel, MarUtils, RepoInfo
 and function set_values that sets the GenerateDataModel attributes.
 """
 
+import argparse
 import os
 import dataclasses
 import sys
@@ -63,7 +64,7 @@ class GenerateDataModel:
     repo_info = RepoInfo()
     debug = bool()
 
-    def __init__(self, params):
+    def __init__(self, params: argparse.Namespace) -> None:
         """
         This is the init method that calls set_values method.
 
@@ -72,7 +73,7 @@ class GenerateDataModel:
         """
         self.set_values(params)
 
-    def set_values(self, params):
+    def set_values(self, params: argparse.Namespace) -> None:
         """
         This method sets values for the GenerateDataModel object based on the
         command-line arguments.
@@ -91,7 +92,7 @@ class GenerateDataModel:
         self.mar_utils.model_path = params.model_path
         self.mar_utils.mar_output = params.mar_output
 
-    def check_if_mar_exists(self):
+    def check_if_mar_exists(self) -> None:
         """
         This method checks if MAR file of a model already exists and skips
         generation if the MAR file already exists
