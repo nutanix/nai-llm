@@ -166,7 +166,15 @@ def test_inference_txt_file_success() -> None:
         response = requests.post(url, data=data, timeout=120, headers=headers)
     except requests.exceptions.RequestException:
         assert False
-    assert response.status_code == 200 and response.text
+    if response.status_code != 200:
+        assert False
+    # Throw error if output is not text (it is in JSON format)
+    try:
+        json.loads(response.text)
+    except json.JSONDecodeError:
+        assert True
+        return
+    assert False
 
 
 def test_inference_json_file_success() -> None:
@@ -179,7 +187,7 @@ def test_inference_json_file_success() -> None:
     headers = {"Content-Type": "application/json; charset=utf-8"}
     file_name = os.path.join(INPUT_PATH, "sample_text4.json")
     with open(file_name, "r", encoding="utf-8") as file:
-        data = file.read()
+        data = json.loads(file.read())
     try:
         response = requests.post(url, json=data, timeout=120, headers=headers)
     except requests.exceptions.RequestException:
@@ -189,7 +197,7 @@ def test_inference_json_file_success() -> None:
     try:
         output = json.loads(response.text)
         assert output["id"] and output["outputs"]
-    except (ValueError, KeyError):
+    except (json.JSONDecodeError, ValueError, KeyError):
         assert False
 
 
