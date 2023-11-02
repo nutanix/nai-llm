@@ -111,14 +111,26 @@ For MPT-7B model
 ```
 curl -v -H "Content-Type: application/text" http://localhost:8080/predictions/mpt_7b -d @$WORK_DIR/data/qa/sample_test1.txt
 ```
+```
+curl -v -H "Content-Type: application/json" http://localhost:8080/predictions/mpt_7b -d @$WORK_DIR/data/qa/sample_test4.json
+```
+
 For Falcon-7B model
 ```
 curl -v -H "Content-Type: application/text" http://localhost:8080/predictions/falcon_7b -d @$WORK_DIR/data/summarize/sample_test1.txt
 ```
+```
+curl -v -H "Content-Type: application/json" http://localhost:8080/predictions/falcon_7b -d @$WORK_DIR/data/summarize/sample_test3.json
+```
+
 For Llama2-7B model
 ```
 curl -v -H "Content-Type: application/text" http://localhost:8080/predictions/llama2_7b -d @$WORK_DIR/data/translate/sample_test1.txt
 ```
+```
+curl -v -H "Content-Type: application/json" http://localhost:8080/predictions/llama2_7b -d @$WORK_DIR/data/translate/sample_test3.json
+```
+
 ### Register additional models
 For loading multiple unique models, make sure that the MAR files (.mar) for the concerned models are stored in the same directory <br />
 
