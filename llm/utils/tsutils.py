@@ -228,11 +228,11 @@ def get_params_for_registration(model_name):
     return initial_workers, batch_size, max_batch_delay, response_timeout
 
 
-def run_inference(
+def run_inference_text_input(
     model_inference_data, protocol="http", host="localhost", port="8080", timeout=120
 ):
     """
-    This function sends request to run inference on Torchserve.
+    This function sends request to run inference on Torchserve for input in text format.
 
     Args:
         model_inference_data (str, list(str)): The model name and paths of input files.
@@ -248,10 +248,39 @@ def run_inference(
 
     url = f"{protocol}://{host}:{port}/predictions/{model_name}"
     headers = {"Content-Type": "application/text; charset=utf-8"}
-    with open(file_name, "rb") as file:
+
+    with open(file_name, "r", encoding="utf-8") as file:
         data = file.read()
 
     response = requests.post(url, data=data, timeout=timeout, headers=headers)
+    return response
+
+
+def run_inference_json_input(
+    model_inference_data, protocol="http", host="localhost", port="8080", timeout=120
+):
+    """
+    This function sends request to run inference on Torchserve for input in json.
+
+    Args:
+        model_inference_data (str, list(str)): The model name and paths of input files.
+        protocol (str, optional): Request protocol. Defaults to "http".
+        host (str, optional): Request host. Defaults to "localhost".
+        port (str, optional): Request Port. Defaults to "8080".
+        timeout (int, optional): Request timeout (sec). Defaults to 120.
+
+    Returns:
+        requests.Response: Reponse of the inference request
+    """
+    model_name, file_name = model_inference_data
+
+    url = f"{protocol}://{host}:{port}/predictions/{model_name}"
+    headers = {"Content-Type": "application/json; charset=utf-8"}
+
+    with open(file_name, "r", encoding="utf-8") as file:
+        data = json.load(file)
+
+    response = requests.post(url, json=data, timeout=timeout, headers=headers)
     return response
 
 

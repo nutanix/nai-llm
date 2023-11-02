@@ -1,0 +1,11 @@
+{
+    "id": "1",
+    "inputs": [
+        {
+            "name": "input0",
+            "shape": [-1],
+            "datatype": "BYTES",
+            "data": ["Tell me about llamas."]
+        }
+    ]
+}

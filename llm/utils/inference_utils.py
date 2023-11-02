@@ -81,7 +81,14 @@ def execute_inference_on_inputs(model_inputs, model_name):
     """
     for data in model_inputs:
         model_inference_data = (model_name, data)
-        response = ts.run_inference(model_inference_data)
+
+        is_json_content_type = bool(data.split(".")[-1] == "json")
+
+        response = (
+            ts.run_inference_json_input(model_inference_data)
+            if is_json_content_type
+            else ts.run_inference_text_input(model_inference_data)
+        )
         if response and response.status_code == 200:
             print(
                 f"## Successfully ran inference on {model_name} model."
