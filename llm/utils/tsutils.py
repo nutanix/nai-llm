@@ -293,7 +293,7 @@ def run_inference_json_input(
     headers = {"Content-Type": "application/json; charset=utf-8"}
 
     with open(file_name, "r", encoding="utf-8") as file:
-        data = json.load(file)
+        data = json.loads(file.read())
 
     response = requests.post(url, json=data, timeout=timeout, headers=headers)
     return response
