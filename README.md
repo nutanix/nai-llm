@@ -34,7 +34,7 @@ Note: We don’t need to install CUDA toolkit separately as it is bundled with P
 ### Download model files and Generate MAR file
 Run the following command for downloading model files and/or generating MAR file: 
 ```
-python3 download.py [--no_download --repo_version <REPO_VERSION>] --model_name <MODEL_NAME> --model_path <MODEL_PATH> --mar_output <MAR_EXPORT_PATH> --hf_token <Your_HuggingFace_Hub_Token>
+python3 llm/download.py [--no_download --repo_version <REPO_VERSION>] --model_name <MODEL_NAME> --model_path <MODEL_PATH> --mar_output <MAR_EXPORT_PATH> --hf_token <Your_HuggingFace_Hub_Token>
 ```
 - no_download:      Set flag to skip downloading the model files
 - model_name:       Name of model
@@ -62,7 +62,7 @@ python3 llm/download.py --model_name llama2_7b --model_path /home/ubuntu/models/
 ### Start Torchserve and run inference
 Run the following command for starting Torchserve and running inference on the given input:
 ```
-bash run.sh -n <MODEL_NAME> -a <MAR_EXPORT_PATH> [OPTIONAL -d <INPUT_PATH> -v <REPO_VERSION>]
+bash llm/run.sh -n <MODEL_NAME> -a <MAR_EXPORT_PATH> [OPTIONAL -d <INPUT_PATH> -v <REPO_VERSION>]
 ```
 - n:    Name of model
 - v:    Commit ID of model's repo from HuggingFace repository (optional, if not provided default set in model_config will be used)
@@ -103,39 +103,42 @@ curl http://localhost:8081/models/llama2_7b
 ```
 
 ### Inference Check
-curl -v -H "Content-Type: application/text" http://{inference_server_endpoint}:{inference_port}/predictions/{model_name} -d @data.txt <br />
+For inferencing with a text file:<br />
+curl -v -H "Content-Type: application/text" http://{inference_server_endpoint}:{inference_port}/predictions/{model_name} -d @path/to/data.txt
 
-Test input file can be found in the data folder. <br />
+For inferencing with a json file:<br />
+curl -v -H "Content-Type: application/json" http://{inference_server_endpoint}:{inference_port}/predictions/{model_name} -d @path/to/data.json
+
+Test input files can be found in the data folder. <br />
 
 For MPT-7B model
 ```
-curl -v -H "Content-Type: application/text" http://localhost:8080/predictions/mpt_7b -d @$WORK_DIR/data/qa/sample_test1.txt
+curl -v -H "Content-Type: application/text" http://localhost:8080/predictions/mpt_7b -d @data/qa/sample_text1.txt
 ```
 ```
-curl -v -H "Content-Type: application/json" http://localhost:8080/predictions/mpt_7b -d @$WORK_DIR/data/qa/sample_test4.json
+curl -v -H "Content-Type: application/json" http://localhost:8080/predictions/mpt_7b -d @data/qa/sample_text4.json
 ```
 
 For Falcon-7B model
 ```
-curl -v -H "Content-Type: application/text" http://localhost:8080/predictions/falcon_7b -d @$WORK_DIR/data/summarize/sample_test1.txt
+curl -v -H "Content-Type: application/text" http://localhost:8080/predictions/falcon_7b -d @data/summarize/sample_text1.txt
 ```
 ```
-curl -v -H "Content-Type: application/json" http://localhost:8080/predictions/falcon_7b -d @$WORK_DIR/data/summarize/sample_test3.json
+curl -v -H "Content-Type: application/json" http://localhost:8080/predictions/falcon_7b -d @data/summarize/sample_text3.json
 ```
 
 For Llama2-7B model
 ```
-curl -v -H "Content-Type: application/text" http://localhost:8080/predictions/llama2_7b -d @$WORK_DIR/data/translate/sample_test1.txt
+curl -v -H "Content-Type: application/text" http://localhost:8080/predictions/llama2_7b -d @data/translate/sample_text1.txt
 ```
 ```
-curl -v -H "Content-Type: application/json" http://localhost:8080/predictions/llama2_7b -d @$WORK_DIR/data/translate/sample_test3.json
+curl -v -H "Content-Type: application/json" http://localhost:8080/predictions/llama2_7b -d @data/translate/sample_text3.json
 ```
 
 ### Register additional models
 For loading multiple unique models, make sure that the MAR files (.mar) for the concerned models are stored in the same directory <br />
 
 curl -X POST "http://{inference_server_endpoint}:{management_port}/models?url={mar_name}.mar&initial_workers=1&synchronous=true"
-Test input file can be found in the data folder. <br />
 
 For MPT-7B model
 ```
@@ -155,15 +158,15 @@ curl -v -X PUT "http://{inference_server_endpoint}:{management_port}/models/{mod
 
 For MPT-7B model
 ```
-curl -v -X PUT "http://localhost:8081/models/mpt_7b?min_worker=3&max_worker=6"
+curl -v -X PUT "http://localhost:8081/models/mpt_7b?min_worker=2&max_worker=2"
 ```
 For Falcon-7B model
 ```
-curl -v -X PUT "http://localhost:8081/models/falcon_7b?min_worker=3&max_worker=6"
+curl -v -X PUT "http://localhost:8081/models/falcon_7b?min_worker=2&max_worker=2"
 ```
 For Llama2-7B model
 ```
-curl -v -X PUT "http://localhost:8081/models/llama2_7b?min_worker=3&max_worker=6"
+curl -v -X PUT "http://localhost:8081/models/llama2_7b?min_worker=2&max_worker=2"
 ```
 
 ### Unregister a model
