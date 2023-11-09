@@ -1,12 +1,12 @@
-# Chatbot Demo
+# Chatbot demo
 
-This is a chatbot demo which talks to the model endpoint over REST API and responds in realtime. 
+This is a real time chatbot demo which talks to the deployed model endpoint over the REST API. 
 
 ## Install Python requirements
 
     pip install -r requirements.txt
 
-## Run Chatbot
+## Run chatbot
 
 Once the inference server is up, run
 
