@@ -66,5 +66,25 @@
             "max_batch_delay": 200,
             "response_timeout": 2000
         }
+    },
+    "codellama_7b_python": {
+        "handler": "handler.py",
+        "repo_id": "codellama/CodeLlama-7b-Python-hf",
+        "repo_version": "7ee7b6beb0dece09b0431ea46c03bc1724e21572",
+        "registration_params": {
+            "batch_size": 1,
+            "max_batch_delay": 200,
+            "response_timeout": 2000
+        }
+    },
+    "llama2_7b_chat": {
+        "handler": "handler.py",
+        "repo_id": "meta-llama/Llama-2-7b-chat-hf",
+        "repo_version": "94b07a6e30c3292b8265ed32ffdeccfdadf434a8",
+        "registration_params": {
+            "batch_size": 1,
+            "max_batch_delay": 200,
+            "response_timeout": 2000
+        }
     }
 }
