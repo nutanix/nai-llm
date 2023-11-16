@@ -118,7 +118,7 @@ class LLMHandler(BaseHandler, ABC):
 
     def preprocess(self, data: str) -> torch.Tensor:
         """
-        This method tookenizes input text using the associated tokenizer.
+        This method tokenizes input text using the associated tokenizer.
         Args:
             text (str): The input text to be tokenized.
         Returns:

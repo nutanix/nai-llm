@@ -154,8 +154,8 @@ def set_config_properties(data_model: InferenceDataModel) -> None:
         f'"minWorkers":{initial_workers or 1},'
         f'"maxWorkers":{initial_workers or 1},'
         f'"batchSize":{batch_size or 1},'
-        f'"maxBatchDelay":{max_batch_delay or 1},'
-        f'"responseTimeout":{response_timeout or 120}}}}}}}}}',
+        f'"maxBatchDelay":{max_batch_delay or 200},'
+        f'"responseTimeout":{response_timeout or 2000}}}}}}}}}',
     ]
     with open(dst_config_path, "a", encoding="utf-8") as config_file:
         config_file.writelines(config_info)
