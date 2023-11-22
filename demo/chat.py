@@ -1,11 +1,12 @@
 import os
 import requests
+import json
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 
-# Add supported models to the list 
+# Add supported models to the list
 AVAILABLE_MODELS = ["llama2-7b-chat", "codellama-7b-python"]
-#AVAILABLE_MODELS = ["llama2-7b", "mpt-7b" , "falcon-7b"]
+# AVAILABLE_MODELS = ["llama2-7b", "mpt-7b" , "falcon-7b"]
 ASSISTANT_SVG = "assistant.svg"
 USER_SVG = "user.svg"
 LOGO_SVG = "nutanix.svg"
@@ -26,38 +27,55 @@ else:
 # App title
 st.title("Hola Nutanix")
 
+
 def clear_chat_history():
-    st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
+    st.session_state.messages = [
+        {"role": "assistant", "content": "How may I assist you today?"}
+    ]
+
 
 with st.sidebar:
-
     if os.path.exists(LOGO_SVG):
-        _, col2, _,_ = st.columns(4)
+        _, col2, _, _ = st.columns(4)
         with col2:
             st.image(LOGO_SVG, width=150)
-    
+
     st.title("GPT-in-a-Box")
-    st.markdown("GPT-in-a-Box is a turnkey AI solution for organizations wanting to implement GPT capabilities while maintaining control of their data and applications. Read the [annoucement](https://www.nutanix.com/blog/nutanix-simplifies-your-ai-innovation-learning-curve)")
+    st.markdown(
+        "GPT-in-a-Box is a turnkey AI solution for organizations wanting to implement GPT capabilities while maintaining control of their data and applications. Read the [annoucement](https://www.nutanix.com/blog/nutanix-simplifies-your-ai-innovation-learning-curve)"
+    )
 
     st.subheader("Models")
-    selected_model = st.sidebar.selectbox("Choose a model", AVAILABLE_MODELS, key="selected_model")
+    selected_model = st.sidebar.selectbox(
+        "Choose a model", AVAILABLE_MODELS, key="selected_model"
+    )
     if selected_model == "llama2-7b":
         llm = "llama2_7b"
-        st.markdown("Llama2 is a state-of-the-art foundational large language model which was pretrained on publicly available online data sources. This chat model leverages publicly available instruction datasets and over 1 million human annotations.")
+        st.markdown(
+            "Llama2 is a state-of-the-art foundational large language model which was pretrained on publicly available online data sources. This chat model leverages publicly available instruction datasets and over 1 million human annotations."
+        )
     elif selected_model == "mpt-7b":
         llm = "mpt_7b"
-        st.markdown("MPT-7B is a decoder-style transformer with 6.7B parameters. It was trained on 1T tokens of text and code that was curated by MosaicML’s data team. This base model includes FlashAttention for fast training and inference and ALiBi for finetuning and extrapolation to long context lengths.")
+        st.markdown(
+            "MPT-7B is a decoder-style transformer with 6.7B parameters. It was trained on 1T tokens of text and code that was curated by MosaicML’s data team. This base model includes FlashAttention for fast training and inference and ALiBi for finetuning and extrapolation to long context lengths."
+        )
     elif selected_model == "falcon-7b":
         llm = "falcon_7b"
-        st.markdown("Falcon-7B is a 7B parameters causal decoder-only model built by TII and trained on 1,500B tokens of RefinedWeb enhanced with curated corpora.")
+        st.markdown(
+            "Falcon-7B is a 7B parameters causal decoder-only model built by TII and trained on 1,500B tokens of RefinedWeb enhanced with curated corpora."
+        )
     elif selected_model == "codellama-7b-python":
         llm = "codellama_7b_python"
         llm_mode = "code"
-        st.markdown("Code Llama is a large language model that can use text prompts to generate and discuss code. It has the potential to make workflows faster and more efficient for developers and lower the barrier to entry for people who are learning to code.")
+        st.markdown(
+            "Code Llama is a large language model that can use text prompts to generate and discuss code. It has the potential to make workflows faster and more efficient for developers and lower the barrier to entry for people who are learning to code."
+        )
     elif selected_model == "llama2-7b-chat":
         llm = "llama2_7b_chat"
         llm_history = "on"
-        st.markdown("Llama2 is a state-of-the-art foundational large language model which was pretrained on publicly available online data sources. This chat model leverages publicly available instruction datasets and over 1 million human annotations.")
+        st.markdown(
+            "Llama2 is a state-of-the-art foundational large language model which was pretrained on publicly available online data sources. This chat model leverages publicly available instruction datasets and over 1 million human annotations."
+        )
     else:
         quit()
 
@@ -68,7 +86,10 @@ with st.sidebar:
 
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
-    st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
+    st.session_state.messages = [
+        {"role": "assistant", "content": "How may I assist you today?"}
+    ]
+
 
 def add_message(message):
     if message["role"] == "assistant":
@@ -78,9 +99,10 @@ def add_message(message):
     if llm_mode == "code":
         with st.chat_message(message["role"], avatar=avatar):
             st.code(message["content"], language="python")
-    else: 
+    else:
         with st.chat_message(message["role"], avatar=avatar):
             st.write(message["content"])
+
 
 # Display or clear chat messages
 for message in st.session_state.messages:
@@ -88,29 +110,40 @@ for message in st.session_state.messages:
 
 st.sidebar.button("Clear Chat History", on_click=clear_chat_history)
 
+
 def generate_response(prompt):
     url = f"http://localhost:8080/predictions/{llm}"
-    headers = {"Content-Type": "application/text; charset=utf-8"}
+    headers = {"Content-Type": "application/json; charset=utf-8"}
     try:
-        response = requests.post(url, data=prompt, timeout=120, headers=headers)
+        response = requests.post(url, json=prompt, timeout=120, headers=headers)
+        response.raise_for_status()
     except requests.exceptions.RequestException:
         print("Error in requests: ", url)
         return ""
-    return response.content.decode("utf-8")
+    return response.text
+
 
 def generate_chat_response(prompt_input):
-    string_dialogue = "You are a helpful assistant. You do not respond as 'User' or pretend to be 'User'. You only respond once as 'Assistant'." + "\n\n"
+    string_dialogue = (
+        "You are a helpful assistant. You do not respond as 'User' or pretend to be 'User'. You only respond once as 'Assistant'."
+        + "\n\n"
+    )
     for dict_message in st.session_state.messages:
         if dict_message["role"] == "user":
             string_dialogue += "User: " + dict_message["content"] + "\n\n"
         else:
             string_dialogue += "Assistant: " + dict_message["content"] + "\n\n"
-    input=f"{string_dialogue} {prompt_input}" + "\n\n"+ "Assistant: "
-    output = generate_response(input)
+    input = f"{string_dialogue} {prompt_input}" + "\n\n" + "Assistant: "
+    input_prompt = get_json_format_prompt(input)
+    output_string = generate_response(input_prompt)
+    if not output_string:
+        return ""
+    output_dict = json.loads(output_string)
+    output = output_dict["outputs"][0]["data"][0]
     # Generation failed
     if len(output) <= len(input):
         return ""
-    return output[len(input):]
+    return output[len(input) :]
 
 
 # User-provided prompt
@@ -120,25 +153,51 @@ if prompt := st.chat_input("Ask your query"):
     add_message(message)
 
 
+def get_json_format_prompt(prompt):
+    data = [prompt]
+    data_dict = {
+        "id": "1",
+        "inputs": [
+            {"name": "input0", "shape": [-1], "datatype": "BYTES", "data": data}
+        ],
+    }
+    return data_dict
+
+
+def modify_response(response):
+    user_index = response.find("User:")
+    extracted_string = response[:user_index].strip()
+    return extracted_string
+
+
 # Generate a new response if last message is not from assistant
 def add_assistant_response():
     if st.session_state.messages[-1]["role"] != "assistant":
         with st.chat_message("assistant", avatar=assistant_avatar):
             with st.spinner("Thinking..."):
                 print(llm_history, llm_mode)
+                response=""
                 if llm_history == "on":
                     response = generate_chat_response(prompt)
                 else:
-                    response = generate_response(prompt)
+                    input_prompt = get_json_format_prompt(prompt)
+                    response_string = generate_response(input_prompt)
+                    if response_string:
+                        response_dict = json.loads(response_string)
+                        response = response_dict["outputs"][0]["data"][0]
                 if not response:
-                    st.markdown("<p style='color:red'>Inference backend is unavailable. Please verify if the inference server is running</p>", unsafe_allow_html=True)
-                    return
+                        st.markdown(
+                            "<p style='color:red'>Inference backend is unavailable. Please verify if the inference server is running</p>",
+                            unsafe_allow_html=True,
+                        )
+                        return
                 if llm_mode == "code":
                     st.code(response, language="python")
                 else:
+                    response = modify_response(response)
                     st.write(response)
         message = {"role": "assistant", "content": response}
         st.session_state.messages.append(message)
 
-add_assistant_response()
 
+add_assistant_response()
