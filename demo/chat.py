@@ -52,7 +52,7 @@ with st.sidebar:
     st.markdown(
         "GPT-in-a-Box is a turnkey AI solution for organizations wanting to implement GPT"
         "capabilities while maintaining control of their data and applications. Read the "
-        "[annoucement]"
+        "[announcement]"
         "(https://www.nutanix.com/blog/nutanix-simplifies-your-ai-innovation-learning-curve)"
     )
 
@@ -176,8 +176,10 @@ def generate_chat_response(prompt_input):
 
     """
     string_dialogue = (
-        "You are a helpful assistant. You do not respond as 'User' or pretend to be 'User'. "
-        "You only respond once as 'Assistant'." + "\n\n"
+        "<s>[INST] <<SYS>> You are a helpful assistant. "
+        "You do not respond as User or pretend to be User."
+        " You only respond once as 'Assistant'." + "\n\n"
+        "<</SYS>>"
     )
 
     for dict_message in st.session_state.messages:
@@ -185,7 +187,7 @@ def generate_chat_response(prompt_input):
             string_dialogue += "User: " + dict_message["content"] + "\n\n"
         else:
             string_dialogue += "Assistant: " + dict_message["content"] + "\n\n"
-    input_text = f"{string_dialogue} {prompt_input}" + "\n\n" + "Assistant: "
+    input_text = f"{string_dialogue} {prompt_input}" + "\n\n" + "Assistant: [/INST]"
     input_prompt = get_json_format_prompt(input_text)
     output_string = generate_response(input_prompt)
     if not output_string:
@@ -195,7 +197,7 @@ def generate_chat_response(prompt_input):
     # Generation failed
     if len(output) <= len(input_text):
         return ""
-    response = modify_response(output[len(input_text) :])
+    response = output[len(input_text) - 1 :]
     return response
 
 
@@ -225,22 +227,6 @@ def get_json_format_prompt(prompt_input):
         ],
     }
     return data_dict
-
-
-def modify_response(response):
-    """
-    Modifies the LLM-generated response by extracting the assistant's part.
-
-    Parameters:
-    - response (str): The LLM-generated response.
-
-    Returns:
-    - str: The modified response.
-
-    """
-    user_index = response.find("User:")
-    extracted_string = response[:user_index].strip()
-    return extracted_string
 
 
 # Generate a new response if last message is not from assistant
