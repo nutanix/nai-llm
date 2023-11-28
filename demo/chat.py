@@ -6,6 +6,7 @@ This module defines a Streamlit app for interacting with different Large Languag
 import os
 import json
 import sys
+import re
 import requests
 import streamlit as st
 
@@ -142,7 +143,7 @@ for message in st.session_state.messages:
 st.sidebar.button("Clear Chat History", on_click=clear_chat_history)
 
 
-def generate_response(prompt_input):
+def generate_response(input_text):
     """
     Generates a response from the LLM based on the given prompt.
 
@@ -153,18 +154,21 @@ def generate_response(prompt_input):
     - str: The generated response.
 
     """
+    input_prompt = get_json_format_prompt(input_text)
     url = f"http://localhost:8080/predictions/{LLM}"
     headers = {"Content-Type": "application/json; charset=utf-8"}
     try:
-        response = requests.post(url, json=prompt_input, timeout=120, headers=headers)
+        response = requests.post(url, json=input_prompt, timeout=120, headers=headers)
         response.raise_for_status()
     except requests.exceptions.RequestException:
         print("Error in requests: ", url)
         return ""
-    return response.text
+    output_dict = json.loads(response.text)
+    output = output_dict["outputs"][0]["data"][0]
+    return output
 
 
-def generate_chat_response(prompt_input):
+def generate_chat_response():
     """
     Generates a chat-based response by including the chat history in the input prompt.
 
@@ -176,28 +180,25 @@ def generate_chat_response(prompt_input):
 
     """
     string_dialogue = (
-        "<s>[INST] <<SYS>> You are a helpful assistant. "
-        "You do not respond as User or pretend to be User."
-        " You only respond once as 'Assistant'." + "\n\n"
-        "<</SYS>>"
+        "[INST] <<SYS>> You are a helpful assistant. "
+        " You only answer the question asked by 'User'"
+        " once as 'Assistant'. <</SYS>>" + "\n\n"
     )
 
     for dict_message in st.session_state.messages:
         if dict_message["role"] == "user":
-            string_dialogue += "User: " + dict_message["content"] + "\n\n"
+            string_dialogue += "User: " + dict_message["content"] + "[/INST]" + "\n\n"
         else:
-            string_dialogue += "Assistant: " + dict_message["content"] + "\n\n"
-    input_text = f"{string_dialogue} {prompt_input}" + "\n\n" + "Assistant: [/INST]"
-    input_prompt = get_json_format_prompt(input_text)
-    output_string = generate_response(input_prompt)
-    if not output_string:
-        return ""
-    output_dict = json.loads(output_string)
-    output = output_dict["outputs"][0]["data"][0]
+            string_dialogue += (
+                "Assistant: " + dict_message["content"] + " [INST]" + "\n\n"
+            )
+    string_dialogue = re.sub(r"\s*\[/INST\]\s*$", "", string_dialogue)
+    input_text = f"{string_dialogue}" + "\n\n" + "Assistant: [/INST]"
+    output = generate_response(input_text)
     # Generation failed
     if len(output) <= len(input_text):
         return ""
-    response = output[len(input_text) - 1 :]
+    response = output[len(input_text) :]
     return response
 
 
@@ -239,16 +240,10 @@ def add_assistant_response():
     if st.session_state.messages[-1]["role"] != "assistant":
         with st.chat_message("assistant", avatar=ASSISTANT_AVATAR):
             with st.spinner("Thinking..."):
-                print(LLM_HISTORY, LLM_MODE)
-                response = ""
                 if LLM_HISTORY == "on":
-                    response = generate_chat_response(prompt)
+                    response = generate_chat_response()
                 else:
-                    input_prompt = get_json_format_prompt(prompt)
-                    response_string = generate_response(input_prompt)
-                    if response_string:
-                        response_dict = json.loads(response_string)
-                        response = response_dict["outputs"][0]["data"][0]
+                    response = generate_response(prompt)
                 if not response:
                     st.markdown(
                         "<p style='color:red'>Inference backend is unavailable. "
