@@ -6,7 +6,6 @@ This module defines a Streamlit app for interacting with different Large Languag
 import os
 import json
 import sys
-import re
 import requests
 import streamlit as st
 
@@ -168,7 +167,7 @@ def generate_response(input_text):
     return output
 
 
-def generate_chat_response():
+def generate_chat_response(input_prompt):
     """
     Generates a chat-based response by including the chat history in the input prompt.
 
@@ -179,20 +178,26 @@ def generate_chat_response():
     - str: The generated chat-based response.
 
     """
+    # Used [INST] and <<SYS>> tags in the input prompts for LLAMA 2 models.
+    # These are tags used to indicate different types of input within the conversation.
+    # "INST" stands for "instruction" and used to provide user queries to the model.
+    # "<<SYS>>" signifies system-related instructions and used to prime the
+    # model with context, instructions, or other information relevant to the use case.
+
     string_dialogue = (
         "[INST] <<SYS>> You are a helpful assistant. "
-        " You only answer the question asked by 'User'"
-        " once as 'Assistant'. <</SYS>>[/INST]" + "\n\n"
+        " You answer the question asked by 'User' once"
+        " as 'Assistant'. <</SYS>>[/INST]" + "\n\n"
     )
 
-    for dict_message in st.session_state.messages:
+    for dict_message in st.session_state.messages[:-1]:
         if dict_message["role"] == "user":
             string_dialogue += "User: " + dict_message["content"] + "[/INST]" + "\n\n"
         else:
             string_dialogue += (
                 "Assistant: " + dict_message["content"] + " [INST]" + "\n\n"
             )
-    string_dialogue = re.sub(r"\s*\[/INST\]\s*$", "", string_dialogue)
+    string_dialogue += "User: " + f"{input_prompt}" + "\n\n"
     input_text = f"{string_dialogue}" + "\n\n" + "Assistant: [/INST]"
     output = generate_response(input_text)
     # Generation failed
@@ -241,7 +246,7 @@ def add_assistant_response():
         with st.chat_message("assistant", avatar=ASSISTANT_AVATAR):
             with st.spinner("Thinking..."):
                 if LLM_HISTORY == "on":
-                    response = generate_chat_response()
+                    response = generate_chat_response(prompt)
                 else:
                     response = generate_response(prompt)
                 if not response:
