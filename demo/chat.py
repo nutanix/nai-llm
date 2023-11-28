@@ -182,7 +182,7 @@ def generate_chat_response():
     string_dialogue = (
         "[INST] <<SYS>> You are a helpful assistant. "
         " You only answer the question asked by 'User'"
-        " once as 'Assistant'. <</SYS>>" + "\n\n"
+        " once as 'Assistant'. <</SYS>>[/INST]" + "\n\n"
     )
 
     for dict_message in st.session_state.messages:
