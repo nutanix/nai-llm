@@ -25,10 +25,15 @@ jobs:
           python-version: 3.11
 
       - name: Install Python dependencies
-        run: pip install pytest black pylint -r llm/requirements.txt
+        run: pip install pytest black pylint -r llm/requirements.txt -r demo/requirements.txt
 
       - name: Run pylint
-        run: pylint ./llm
+        run: |
+          pylint ./llm
+          pylint ./demo
       
       - name: Run black
-        run: black ./llm --check
+        run: |
+          black ./llm --check
+          black ./demo --check
+
