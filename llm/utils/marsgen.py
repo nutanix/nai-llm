@@ -6,13 +6,71 @@ Attributes:
 """
 import os
 import sys
+import time
+import threading
 import subprocess
-from typing import Dict
+from typing import List, Dict
+import tqdm
 from utils.system_utils import check_if_path_exists, get_all_files_in_directory
 from utils.generate_data_model import GenerateDataModel
 
 # MAR_NAME_LEN - Number of characters to include from repo_version in MAR name
 MAR_NAME_LEN = 7
+
+
+def monitor_marfile_size(
+    file_path: str, approx_marfile_size: float, stop_monitoring: threading.Event
+) -> None:
+    """
+    Monitor the generation of a Model Archive File and display progress.
+
+    Args:
+        file_path (str): The path to the Model Archive File.
+        approx_marfile_size (int): The approximate size of the Model Archive File in bytes.
+        stop_monitoring (threading.Event): Threading Event to stop progress bar.
+    """
+    print("Model Archive File is Generating...\n")
+    previous_file_size = 0
+    progress_bar = tqdm.tqdm(
+        total=approx_marfile_size,
+        unit="B",
+        unit_scale=True,
+        desc="Creating Model Archive",
+    )
+    while not stop_monitoring.is_set():
+        try:
+            current_file_size = os.path.getsize(file_path)
+        except FileNotFoundError:
+            current_file_size = 0
+        size_change = current_file_size - previous_file_size
+        previous_file_size = current_file_size
+        progress_bar.update(size_change)
+        time.sleep(2)
+    progress_bar.update(approx_marfile_size - current_file_size)
+    progress_bar.close()
+    print(
+        f"\nModel Archive file size: {os.path.getsize(file_path) / (1024 ** 3):.2f} GB\n"
+    )
+
+
+def get_files_sizes(file_paths: List) -> float:
+    """
+    Calculate the total size of the specified files.
+
+    Args:
+        file_paths (list): A list of file paths for which the sizes should be calculated.
+
+    Returns:
+        total_size (float): The sum of sizes (in bytes) of all the specified files.
+    """
+    total_size = 0
+    for file_path in file_paths:
+        try:
+            size = os.path.getsize(file_path)
+            total_size += size
+        except FileNotFoundError:
+            print(f"File not found: {file_path}")
+    return total_size
 
 
 def get_mar_name(
@@ -45,7 +103,8 @@ def generate_mars(
 ) -> None:
     """
     This function runs Torch Model Archiver command to generate MAR file. It calls the
-    model_archiver_command_builder function to generate the command which it then runs
+    model_archiver_command_builder function to generate the command which it then runs.
+    It also starts a thread for the progress bar of Model Archive file generation.
 
     Args:
         gen_model (GenerateDataModel): Dataclass that contains data required to generate MAR file.
@@ -90,12 +149,21 @@ def generate_mars(
         print(f"## In directory: {os.getcwd()} | Executing command: {cmd}\n")
 
     try:
+        stop_monitoring = threading.Event()
+        approx_marfile_size = get_files_sizes(extra_files_list) / 1.15
+        mar_progress_thread = threading.Thread(
+            target=monitor_marfile_size,
+            args=(
+                os.path.join(model_store_dir, f"{gen_model.model_name}.mar"),
+                approx_marfile_size,
+                stop_monitoring,
+            ),
+        )
+        mar_progress_thread.start()
         subprocess.check_call(cmd, shell=True)
-        if debug:
-            print(
-                f"## Model {gen_model.model_name} with version "
-                f"{gen_model.repo_info.repo_version} is generated.\n"
-            )
+        stop_monitoring.set()
+        mar_progress_thread.join()
+        print(f"## {gen_model.model_name}.mar is generated.\n")
     except subprocess.CalledProcessError as exc:
         print("## Creation failed !\n")
         if debug:

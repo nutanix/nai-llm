@@ -7,6 +7,8 @@ import argparse
 import os
 import dataclasses
 import sys
+import huggingface_hub as hfh
+from huggingface_hub.utils import HfHubHTTPError, HFValidationError
 
 
 @dataclasses.dataclass
@@ -86,6 +88,7 @@ class GenerateDataModel:
         self.debug = params.debug
 
         self.repo_info.hf_token = params.hf_token
+        self.repo_info.repo_id = params.repo_id
         self.repo_info.repo_version = params.repo_version
 
         self.mar_utils.handler_path = params.handler_path
@@ -105,5 +108,44 @@ class GenerateDataModel:
                 f"## Skipping MAR file generation as it already exists\n"
                 f" Model name: {self.model_name}\n Repository Version: "
                 f"{self.repo_info.repo_version}\n"
+            )
+            sys.exit(1)
+
+    def validate_hf_token(self) -> None:
+        """
+        This method makes sure there is HuggingFace token is valid
+        for the Meta models (Llama models)
+        """
+        # Make sure there is HF hub token for LLAMA(2)
+        if (
+            self.repo_info.repo_id.startswith("meta-llama")
+            and self.repo_info.hf_token is None
+        ):
+            print(
+                "## Error: HuggingFace Hub token is required for llama download."
+                " Please specify it using --hf_token=<your token>. "
+                "Refer https://huggingface.co/docs/hub/security-tokens"
+            )
+            sys.exit(1)
+
+    def get_latest_commit_id(self) -> None:
+        """
+        This method validates the HuggingFace repository information and
+        gets the latest commit ID of the model.
+        """
+        # Validate downloaded files
+        try:
+            hf_api = hfh.HfApi()
+            commit_info = hf_api.list_repo_commits(
+                repo_id=self.repo_info.repo_id,
+                revision=self.repo_info.repo_version,
+                token=self.repo_info.hf_token,
+            )
+            self.repo_info.repo_version = commit_info[0].commit_id
+
+        except (HfHubHTTPError, HFValidationError):
+            print(
+                "## Error: Please check either repo_id, repo_version"
+                " or HuggingFace ID is not correct\n"
             )
             sys.exit(1)
