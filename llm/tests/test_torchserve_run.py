@@ -226,7 +226,7 @@ def test_custom_model_download_success() -> None:
     This function tests download custom model input folder.
     Expected result: Success.
     """
-    custom_model_setup(download=False)
+    custom_model_setup(download_model=False)
     args = set_generate_args()
     args.repo_id = "gpt2"
     try:

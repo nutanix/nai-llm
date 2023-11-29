@@ -251,7 +251,7 @@ def test_skip_download_success() -> None:
         assert result is True
 
 
-def custom_model_setup(download: bool = True) -> None:
+def custom_model_setup(download_model: bool = True) -> None:
     """
     This function is used to setup custom model case.
     It runs download.py to download model files and
@@ -262,7 +262,7 @@ def custom_model_setup(download: bool = True) -> None:
         download (bool): Set to download model files (defaults to True)
     """
     download_setup()
-    if download:
+    if download_model:
         args = set_generate_args()
         download.run_script(args)
 
@@ -308,7 +308,7 @@ def test_custom_model_download_success() -> None:
     generating the 'GPT2' MAR file.
     Expected result: Success.
     """
-    custom_model_setup(download = False)
+    custom_model_setup(download_model=False)
     args = set_generate_args()
     args.repo_id = "gpt2"
     try:
@@ -326,7 +326,7 @@ def test_custom_model_download_wrong_repo_id_throw_error() -> None:
     passes a wrong repo_id.
     Expected result: Failure.
     """
-    custom_model_setup(download = False)
+    custom_model_setup(download_model=False)
     args = set_generate_args()
     args.repo_id = "wrong_repo_id"
     try:
@@ -344,7 +344,7 @@ def test_custom_model_download_wrong_repo_version_throw_error() -> None:
     passes a correct repo_id but wrong repo_version.
     Expected result: Failure.
     """
-    custom_model_setup(download = False)
+    custom_model_setup(download_model=False)
     args = set_generate_args()
     args.repo_id = "gpt2"
     args.repo_version = "wrong_repo_version"
