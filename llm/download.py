@@ -186,9 +186,9 @@ def read_config_for_download(gen_model: GenerateDataModel) -> GenerateDataModel:
                 gen_model.validate_hf_token()
 
                 # Validate repository info
-                gen_model.get_latest_commit_id()
+                gen_model.validate_commit_info()
 
-            except KeyError:
+            except (KeyError, ValueError):
                 print(
                     "## There seems to be an error in the model_config.json file. "
                     "Please check the same."
@@ -230,10 +230,7 @@ def read_config_for_download(gen_model: GenerateDataModel) -> GenerateDataModel:
                 gen_model.validate_hf_token()
 
                 # Validate repository info
-                lastest_commit_id = gen_model.get_latest_commit_id()
-
-                if not gen_model.repo_info.repo_version:
-                    gen_model.repo_info.repo_version = lastest_commit_id
+                gen_model.validate_commit_info()
 
             if not gen_model.mar_utils.handler_path:
                 gen_model.mar_utils.handler_path = os.path.join(

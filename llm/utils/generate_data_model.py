@@ -128,12 +128,11 @@ class GenerateDataModel:
             )
             sys.exit(1)
 
-    def get_latest_commit_id(self) -> None:
+    def validate_commit_info(self) -> str:
         """
         This method validates the HuggingFace repository information and
-        gets the latest commit ID of the model.
+        sets the latest commit ID of the model if repo_version is None.
         """
-        # Validate downloaded files
         try:
             hf_api = hfh.HfApi()
             commit_info = hf_api.list_repo_commits(
@@ -141,7 +140,10 @@ class GenerateDataModel:
                 revision=self.repo_info.repo_version,
                 token=self.repo_info.hf_token,
             )
-            self.repo_info.repo_version = commit_info[0].commit_id
+
+            # Set repo_version to latest commit ID if it is None
+            if not self.repo_info.repo_version:
+                self.repo_info.repo_version = commit_info[0].commit_id
 
         except (HfHubHTTPError, HFValidationError):
             print(
