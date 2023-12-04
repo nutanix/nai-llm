@@ -9,9 +9,13 @@ import sys
 import time
 import threading
 import subprocess
-from typing import List, Dict
+from typing import Dict
 import tqdm
-from utils.system_utils import check_if_path_exists, get_all_files_in_directory
+from utils.system_utils import (
+    check_if_path_exists,
+    get_all_files_in_directory,
+    get_files_sizes,
+)
 from utils.generate_data_model import GenerateDataModel
 
 # MAR_NAME_LEN - Number of characters to include from repo_version in MAR name
@@ -51,26 +55,6 @@ def monitor_marfile_size(
     print(
         f"\nModel Archive file size: {os.path.getsize(file_path) / (1024 ** 3):.2f} GB\n"
     )
-
-
-def get_files_sizes(file_paths: List) -> float:
-    """
-    Calculate the total size of the specified files.
-
-    Args:
-        file_paths (list): A list of file paths for which the sizes should be calculated.
-
-    Returns:
-        total_size (float): The sum of sizes (in bytes) of all the specified files.
-    """
-    total_size = 0
-    for file_path in file_paths:
-        try:
-            size = os.path.getsize(file_path)
-            total_size += size
-        except FileNotFoundError:
-            print(f"File not found: {file_path}")
-    return total_size
 
 
 def get_mar_name(
@@ -149,8 +133,13 @@ def generate_mars(
         print(f"## In directory: {os.getcwd()} | Executing command: {cmd}\n")
 
     try:
+        # Event to stop the thread from monitoring output file size.
         stop_monitoring = threading.Event()
+
+        # Approximate size of output Model Archive file.
         approx_marfile_size = get_files_sizes(extra_files_list) / 1.15
+
+        # Creating a thread to monitor MAR file size while generation and show progress bar
         mar_progress_thread = threading.Thread(
             target=monitor_marfile_size,
             args=(

@@ -58,6 +58,8 @@ def ts_health_check(model_name: str, model_timeout: int = 1500) -> None:
     sleep_time = 15
     success = False
     total_tries = int(model_timeout / sleep_time)
+
+    # health check progress bar
     progress_bar = tqdm.tqdm(
         total=total_tries,
         unit="check",
