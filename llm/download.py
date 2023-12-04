@@ -15,7 +15,6 @@ import re
 import uuid
 from typing import List
 import huggingface_hub as hfh
-from huggingface_hub.utils import HfHubHTTPError
 from utils.marsgen import get_mar_name, generate_mars
 from utils.system_utils import (
     check_if_path_exists,
@@ -176,26 +175,6 @@ def read_config_for_download(gen_model: GenerateDataModel) -> GenerateDataModel:
                         "repo_version"
                     ]
 
-                # Make sure there is HF hub token for LLAMA(2)
-                if (
-                    gen_model.repo_info.repo_id.startswith("meta-llama")
-                    and gen_model.repo_info.hf_token is None
-                ):
-                    print(
-                        "## Error: HuggingFace Hub token is required for llama download."
-                        " Please specify it using --hf_token=<your token>. "
-                        "Refer https://huggingface.co/docs/hub/security-tokens"
-                    )
-                    sys.exit(1)
-
-                # Validate downloaded files
-                hf_api = hfh.HfApi()
-                hf_api.list_repo_commits(
-                    repo_id=gen_model.repo_info.repo_id,
-                    revision=gen_model.repo_info.repo_version,
-                    token=gen_model.repo_info.hf_token,
-                )
-
                 # Read handler file name
                 if not gen_model.mar_utils.handler_path:
                     gen_model.mar_utils.handler_path = os.path.join(
@@ -203,38 +182,61 @@ def read_config_for_download(gen_model: GenerateDataModel) -> GenerateDataModel:
                         models[gen_model.model_name]["handler"],
                     )
 
-            except (KeyError, HfHubHTTPError):
+                # Validate hf_token
+                gen_model.validate_hf_token()
+
+                # Validate repository info
+                gen_model.validate_commit_info()
+
+            except (KeyError, ValueError):
                 print(
-                    "## Error: Please check either repo_id, repo_version"
-                    " or HuggingFace ID is not correct\n"
-                )
-                sys.exit(1)
-        else:  # Custom model case
-            if not gen_model.skip_download:
-                print(
-                    "## Please check your model name,"
-                    " it should be one of the following : "
-                )
-                print(list(models.keys()))
-                print(
-                    "\n## If you want to use custom model files,"
-                    " use the '--no_download' argument"
+                    "## There seems to be an error in the model_config.json file. "
+                    "Please check the same."
                 )
                 sys.exit(1)
 
-            if check_if_folder_empty(gen_model.mar_utils.model_path):
-                print("## Error: The given model path folder is empty\n")
-                sys.exit(1)
+        else:  # Custom model case
+            gen_model.is_custom_model = True
+            if gen_model.skip_download:
+                if check_if_folder_empty(gen_model.mar_utils.model_path):
+                    print("## Error: The given model path folder is empty\n")
+                    sys.exit(1)
+
+                if not gen_model.repo_info.repo_version:
+                    gen_model.repo_info.repo_version = "1.0"
+
+            else:
+                if not gen_model.repo_info.repo_id:
+                    print(
+                        "## If you want to create a model archive file with the supported models, "
+                        "make sure you're model name is present in the below : "
+                    )
+                    print(list(models.keys()))
+                    print(
+                        "\nIf you want to create a model archive file for"
+                        " a custom model,there are two methods:\n"
+                        "1. If you have already downloaded the custom model"
+                        " files, please include"
+                        " the --no_download flag and provide the model_path "
+                        "directory which contains the model files.\n"
+                        "2. If you need to download the model files, provide "
+                        "the HuggingFace repository ID using 'repo_id'"
+                        " along with an empty model_path driectory where the "
+                        "model files will be downloaded.\n"
+                    )
+                    sys.exit(1)
+
+                # Validate hf_token
+                gen_model.validate_hf_token()
+
+                # Validate repository info
+                gen_model.validate_commit_info()
 
             if not gen_model.mar_utils.handler_path:
                 gen_model.mar_utils.handler_path = os.path.join(
                     os.path.dirname(__file__), "handler.py"
                 )
 
-            if not gen_model.repo_info.repo_version:
-                gen_model.repo_info.repo_version = "1.0"
-
-            gen_model.is_custom_model = True
             print(
                 f"\n## Generating MAR file for "
                 f"custom model files: {gen_model.model_name}"
@@ -260,7 +262,9 @@ def run_download(gen_model: GenerateDataModel) -> GenerateDataModel:
         GenerateDataModel: An instance of the GenerateDataModel class.
     """
     if not check_if_folder_empty(gen_model.mar_utils.model_path):
-        print("## Make sure the path provided to download model files is empty\n")
+        print(
+            "## Make sure the model_path provided to download model files through is empty\n"
+        )
         sys.exit(1)
 
     print(
@@ -290,7 +294,9 @@ def create_mar(gen_model: GenerateDataModel) -> None:
     Args:
         gen_model (GenerateDataModel): An instance of the GenerateDataModel dataclass
     """
-    if not gen_model.is_custom_model and not check_if_model_files_exist(gen_model):
+    if not (
+        gen_model.is_custom_model and gen_model.skip_download
+    ) and not check_if_model_files_exist(gen_model):
         print("## Model files do not match HuggingFace repository files")
         sys.exit(1)
 
@@ -347,13 +353,20 @@ if __name__ == "__main__":
         type=str,
         default="",
         required=True,
-        metavar="mn",
+        metavar="n",
         help="Name of model",
+    )
+    parser.add_argument(
+        "--repo_id",
+        type=str,
+        default=None,
+        metavar="ri",
+        help="HuggingFace repository ID (In case of custom model download)",
     )
     parser.add_argument(
         "--repo_version",
         type=str,
-        default="",
+        default=None,
         metavar="rv",
         help="Commit ID of models repo from HuggingFace repository",
     )
@@ -367,7 +380,7 @@ if __name__ == "__main__":
         type=str,
         default="",
         required=True,
-        metavar="mp",
+        metavar="p",
         help="Absolute path of model files (should be empty if downloading)",
     )
     parser.add_argument(
@@ -375,7 +388,7 @@ if __name__ == "__main__":
         type=str,
         default="",
         required=True,
-        metavar="mx",
+        metavar="a",
         help="Absolute path of exported MAR file (.mar)",
     )
     parser.add_argument(
@@ -389,7 +402,7 @@ if __name__ == "__main__":
         "--hf_token",
         type=str,
         default=None,
-        metavar="hft",
+        metavar="ht",
         help="HuggingFace Hub token to download LLAMA(2) models",
     )
     parser.add_argument("--debug", action="store_true", help="flag to debug")

@@ -60,7 +60,7 @@ def cleanup_folders() -> None:
 
 def set_generate_args(
     model_name: str = MODEL_NAME,
-    repo_version: str = "",
+    repo_version: str = None,
     model_path: str = MODEL_PATH,
     mar_output: str = MODEL_STORE,
     handler_path: str = "",
@@ -82,6 +82,7 @@ def set_generate_args(
     args.model_path = model_path
     args.mar_output = mar_output
     args.no_download = False
+    args.repo_id = None
     args.repo_version = repo_version
     args.handler_path = handler_path
     args.debug = False
@@ -250,16 +251,20 @@ def test_skip_download_success() -> None:
         assert result is True
 
 
-def custom_model_setup() -> None:
+def custom_model_setup(download_model: bool = True) -> None:
     """
     This function is used to setup custom model case.
     It runs download.py to download model files and
     deletes the contents of 'model_config.json' after
     making a backup.
+
+    Args:
+        download (bool): Set to download model files (defaults to True)
     """
     download_setup()
-    args = set_generate_args()
-    download.run_script(args)
+    if download_model:
+        args = set_generate_args()
+        download.run_script(args)
 
     # creating a backup of original model_config.json
     copy_file(MODEL_CONFIG_PATH, MODEL_TEMP_CONFIG_PATH)
@@ -277,9 +282,9 @@ def custom_model_restore() -> None:
     cleanup_folders()
 
 
-def test_custom_model_success() -> None:
+def test_custom_model_skip_download_success() -> None:
     """
-    This function tests the custom model case.
+    This function tests the no download custom model case.
     This is done by clearing the 'model_config.json' and
     generating the 'GPT2' MAR file.
     Expected result: Success.
@@ -293,6 +298,62 @@ def test_custom_model_success() -> None:
         assert False
     else:
         assert result is True
+    custom_model_restore()
+
+
+def test_custom_model_download_success() -> None:
+    """
+    This function tests the download custom model case.
+    This is done by clearing the 'model_config.json' and
+    generating the 'GPT2' MAR file.
+    Expected result: Success.
+    """
+    custom_model_setup(download_model=False)
+    args = set_generate_args()
+    args.repo_id = "gpt2"
+    try:
+        result = download.run_script(args)
+    except SystemExit:
+        assert False
+    else:
+        assert result is True
+    custom_model_restore()
+
+
+def test_custom_model_download_wrong_repo_id_throw_error() -> None:
+    """
+    This function tests the download custom model case and
+    passes a wrong repo_id.
+    Expected result: Failure.
+    """
+    custom_model_setup(download_model=False)
+    args = set_generate_args()
+    args.repo_id = "wrong_repo_id"
+    try:
+        download.run_script(args)
+    except SystemExit as e:
+        assert e.code == 1
+    else:
+        assert False
+    custom_model_restore()
+
+
+def test_custom_model_download_wrong_repo_version_throw_error() -> None:
+    """
+    This function tests the download custom model case and
+    passes a correct repo_id but wrong repo_version.
+    Expected result: Failure.
+    """
+    custom_model_setup(download_model=False)
+    args = set_generate_args()
+    args.repo_id = "gpt2"
+    args.repo_version = "wrong_repo_version"
+    try:
+        download.run_script(args)
+    except SystemExit as e:
+        assert e.code == 1
+    else:
+        assert False
     custom_model_restore()
 
 

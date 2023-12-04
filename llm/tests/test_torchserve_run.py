@@ -201,14 +201,34 @@ def test_inference_json_file_success() -> None:
         assert False
 
 
-def test_custom_model_success() -> None:
+def test_custom_model_skip_download_success() -> None:
     """
-    This function tests custom model with input folder.
+    This function tests custom model skipping download with input folder.
     Expected result: Success.
     """
     custom_model_setup()
     args = set_generate_args()
     args.no_download = True
+    try:
+        download.run_script(args)
+    except SystemExit:
+        assert False
+
+    process = subprocess.run(get_run_cmd(input_path=INPUT_PATH), check=False)
+    assert process.returncode == 0
+
+    custom_model_restore()
+    process = subprocess.run(["python3", "cleanup.py"], check=False)
+
+
+def test_custom_model_download_success() -> None:
+    """
+    This function tests download custom model input folder.
+    Expected result: Success.
+    """
+    custom_model_setup(download_model=False)
+    args = set_generate_args()
+    args.repo_id = "gpt2"
     try:
         download.run_script(args)
     except SystemExit:

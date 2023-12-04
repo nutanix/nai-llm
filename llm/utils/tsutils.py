@@ -52,11 +52,11 @@ def generate_ts_start_cmd(ts_data: TorchserveStartData, ncs: bool, debug: bool) 
     if ts_data.ts_log_config:
         cmd += f" --log-config {ts_data.ts_log_config}"
     if ts_data.ts_log_file:
-        print(f"## Console logs redirected to file: {ts_data.ts_log_file} \n")
-        dirpath = os.path.dirname(ts_data.ts_log_file)
-        cmd += f" >> {os.path.join(dirpath,ts_data.ts_log_file)}"
+        cmd += f" >> {ts_data.ts_log_file}"
     if debug:
         print(f"## In directory: {os.getcwd()} | Executing command: {cmd} \n")
+    log_file = os.path.join(os.path.dirname(ts_data.ts_log_file), "ts_log.log")
+    print(f"## TorchServe Inference Server logs can be found at: {log_file} \n")
     return cmd
 
 

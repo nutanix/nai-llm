@@ -7,6 +7,7 @@ import time
 import traceback
 from typing import List, Dict
 import json
+import tqdm
 import requests
 import utils.tsutils as ts
 import utils.system_utils as su
@@ -41,9 +42,10 @@ def start_ts_server(ts_data: TorchserveStartData, debug: bool) -> None:
         sys.exit(1)
 
 
-def ts_health_check(model_name: str, model_timeout: int = 1200) -> None:
+def ts_health_check(model_name: str, model_timeout: int = 1500) -> None:
     """
-    This function checks if the model is registered or not.
+    This function checks if the model is registered or not. Also displays a
+    progress bar for the same.
     Args:
       model_name (str): The name of the model that is being registered.
       deploy_name (str): The name of the server where the model is registered.
@@ -55,6 +57,15 @@ def ts_health_check(model_name: str, model_timeout: int = 1200) -> None:
     retry_count = 0
     sleep_time = 15
     success = False
+    total_tries = int(model_timeout / sleep_time)
+
+    # health check progress bar
+    progress_bar = tqdm.tqdm(
+        total=total_tries,
+        unit="check",
+        desc="Waiting for Model to be ready",
+        bar_format="{desc}: |{bar}| {n_fmt}/{total_fmt} checks",
+    )
     while not success and retry_count * sleep_time < model_timeout:
         try:
             success = ts.run_health_check(model_name)
@@ -63,11 +74,15 @@ def ts_health_check(model_name: str, model_timeout: int = 1200) -> None:
         if not success:
             time.sleep(sleep_time)
             retry_count += 1
+            progress_bar.update(1)
     if success:
-        print("## Health check passed. Model registered.\n")
+        progress_bar.update(total_tries - retry_count)
+        progress_bar.close()
+        print("\n## Health check passed. Model registered.\n")
     else:
+        progress_bar.close()
         print(
-            f"## Failed health check after multiple retries for model - {model_name} \n"
+            f"\n## Failed health check after multiple retries for model - {model_name} \n"
         )
         sys.exit(1)
 
