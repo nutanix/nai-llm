@@ -217,7 +217,7 @@ def read_config_for_download(gen_model: GenerateDataModel) -> GenerateDataModel:
                         " a custom model,there are two methods:\n"
                         "1. If you have already downloaded the custom model"
                         " files, please include"
-                        " the --no_download flag and provide the model_path "
+                        " the --skip_download flag and provide the model_path "
                         "directory which contains the model files.\n"
                         "2. If you need to download the model files, provide "
                         "the HuggingFace repository ID using 'repo_id'"
@@ -371,7 +371,7 @@ if __name__ == "__main__":
         help="Commit ID of models repo from HuggingFace repository",
     )
     parser.add_argument(
-        "--no_download",
+        "--skip_download",
         action="store_true",
         help="Set flag to skip downloading the model files",
     )
