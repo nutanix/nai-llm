@@ -10,8 +10,8 @@ from typing import List
 import json
 import requests
 import pytest
-import download
-from tests.test_download import (
+import generate
+from tests.test_generate import (
     MODEL_STORE,
     MODEL_NAME,
     set_generate_args,
@@ -208,9 +208,9 @@ def test_custom_model_skip_download_success() -> None:
     """
     custom_model_setup()
     args = set_generate_args()
-    args.no_download = True
+    args.skip_download = True
     try:
-        download.run_script(args)
+        generate.run_script(args)
     except SystemExit:
         assert False
 
@@ -230,7 +230,7 @@ def test_custom_model_download_success() -> None:
     args = set_generate_args()
     args.repo_id = "gpt2"
     try:
-        download.run_script(args)
+        generate.run_script(args)
     except SystemExit:
         assert False
 

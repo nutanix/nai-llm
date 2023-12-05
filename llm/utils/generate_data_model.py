@@ -84,7 +84,7 @@ class GenerateDataModel:
             params: An argparse.Namespace object containing command-line arguments.
         """
         self.model_name = params.model_name
-        self.skip_download = params.no_download
+        self.skip_download = params.skip_download
         self.debug = params.debug
 
         self.repo_info.hf_token = params.hf_token

@@ -14,7 +14,7 @@ import shutil
 import json
 from pathlib import Path
 import pytest
-import download
+import generate
 from utils.shell_utils import copy_file
 
 MODEL_NAME = "gpt2"
@@ -81,7 +81,7 @@ def set_generate_args(
     args.model_name = model_name
     args.model_path = model_path
     args.mar_output = mar_output
-    args.no_download = False
+    args.skip_download = False
     args.repo_id = None
     args.repo_version = repo_version
     args.handler_path = handler_path
@@ -98,7 +98,7 @@ def test_default_generate_success() -> None:
     download_setup()
     args = set_generate_args()
     try:
-        result = download.run_script(args)
+        result = generate.run_script(args)
     except SystemExit:
         assert False
     else:
@@ -113,7 +113,7 @@ def test_wrong_model_store_throw_error() -> None:
     download_setup()
     args = set_generate_args(mar_output="wrong_model_store")
     try:
-        download.run_script(args)
+        generate.run_script(args)
     except SystemExit as e:
         assert e.code == 1
     else:
@@ -128,7 +128,7 @@ def test_wrong_model_path_throw_error() -> None:
     download_setup()
     args = set_generate_args(model_path="wrong_model_path")
     try:
-        download.run_script(args)
+        generate.run_script(args)
     except SystemExit as e:
         assert e.code == 1
     else:
@@ -145,7 +145,7 @@ def test_non_empty_model_path_throw_error() -> None:
         file.write("non empty text")
     args = set_generate_args()
     try:
-        download.run_script(args)
+        generate.run_script(args)
     except SystemExit as e:
         assert e.code == 1
     else:
@@ -160,7 +160,7 @@ def test_invalid_repo_version_throw_error() -> None:
     download_setup()
     args = set_generate_args(repo_version="invalid_repo_version")
     try:
-        download.run_script(args)
+        generate.run_script(args)
     except SystemExit as e:
         assert e.code == 1
     else:
@@ -175,7 +175,7 @@ def test_valid_repo_version_success() -> None:
     download_setup()
     args = set_generate_args(repo_version="e7da7f221d5bf496a48136c0cd264e630fe9fcc8")
     try:
-        result = download.run_script(args)
+        result = generate.run_script(args)
     except SystemExit:
         assert False
     else:
@@ -190,7 +190,7 @@ def test_invalid_handler_throw_error() -> None:
     download_setup()
     args = set_generate_args(handler_path="invalid_handler.py")
     try:
-        download.run_script(args)
+        generate.run_script(args)
     except SystemExit as e:
         assert e.code == 1
     else:
@@ -204,9 +204,9 @@ def test_skip_download_throw_error() -> None:
     """
     download_setup()
     args = set_generate_args()
-    args.no_download = True
+    args.skip_download = True
     try:
-        download.run_script(args)
+        generate.run_script(args)
     except SystemExit as e:
         assert e.code == 1
     else:
@@ -220,9 +220,9 @@ def test_mar_exists_throw_error() -> None:
     """
     download_setup()
     args = set_generate_args()
-    download.run_script(args)
+    generate.run_script(args)
     try:
-        download.run_script(args)
+        generate.run_script(args)
     except SystemExit as e:
         assert e.code == 1
     else:
@@ -236,15 +236,15 @@ def test_skip_download_success() -> None:
     """
     download_setup()
     args = set_generate_args()
-    download.run_script(args)
+    generate.run_script(args)
 
     # clear model store directory
     rm_dir(MODEL_STORE)
     os.makedirs(MODEL_STORE)
     args = set_generate_args()
-    args.no_download = True
+    args.skip_download = True
     try:
-        result = download.run_script(args)
+        result = generate.run_script(args)
     except SystemExit:
         assert False
     else:
@@ -264,7 +264,7 @@ def custom_model_setup(download_model: bool = True) -> None:
     download_setup()
     if download_model:
         args = set_generate_args()
-        download.run_script(args)
+        generate.run_script(args)
 
     # creating a backup of original model_config.json
     copy_file(MODEL_CONFIG_PATH, MODEL_TEMP_CONFIG_PATH)
@@ -291,9 +291,9 @@ def test_custom_model_skip_download_success() -> None:
     """
     custom_model_setup()
     args = set_generate_args()
-    args.no_download = True
+    args.skip_download = True
     try:
-        result = download.run_script(args)
+        result = generate.run_script(args)
     except SystemExit:
         assert False
     else:
@@ -312,7 +312,7 @@ def test_custom_model_download_success() -> None:
     args = set_generate_args()
     args.repo_id = "gpt2"
     try:
-        result = download.run_script(args)
+        result = generate.run_script(args)
     except SystemExit:
         assert False
     else:
@@ -330,7 +330,7 @@ def test_custom_model_download_wrong_repo_id_throw_error() -> None:
     args = set_generate_args()
     args.repo_id = "wrong_repo_id"
     try:
-        download.run_script(args)
+        generate.run_script(args)
     except SystemExit as e:
         assert e.code == 1
     else:
@@ -349,7 +349,7 @@ def test_custom_model_download_wrong_repo_version_throw_error() -> None:
     args.repo_id = "gpt2"
     args.repo_version = "wrong_repo_version"
     try:
-        download.run_script(args)
+        generate.run_script(args)
     except SystemExit as e:
         assert e.code == 1
     else:
