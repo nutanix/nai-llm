@@ -47,16 +47,6 @@
             "response_timeout": 2000
         }
     },
-    "phi-1_5": {
-        "handler": "handler.py",
-        "repo_id": "microsoft/phi-1_5",
-        "repo_version": "b6a7e2fe15c21f5847279f23e280cc5a0e7049ef",
-        "registration_params": {
-            "batch_size": 1,
-            "max_batch_delay": 200,
-            "response_timeout": 2000
-        }
-    },
     "gpt2": {
         "handler": "handler.py",
         "repo_id": "gpt2",
