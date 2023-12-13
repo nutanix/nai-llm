@@ -2,7 +2,7 @@
     "mpt_7b": {
         "handler": "handler.py",
         "repo_id": "mosaicml/mpt-7b",
-        "repo_version": "00f72b21dd089db80c7fb50cb606996751500f6d",
+        "repo_version": "ada218f9a93b5f1c6dce48a4cc9ff01fcba431e7",
         "model_params": {
             "temperature": 0.7,
             "repetition_penalty": 1.75,
