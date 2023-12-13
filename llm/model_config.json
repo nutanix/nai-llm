@@ -2,7 +2,7 @@
     "mpt_7b": {
         "handler": "handler.py",
         "repo_id": "mosaicml/mpt-7b",
-        "repo_version": "00f72b21dd089db80c7fb50cb606996751500f6d",
+        "repo_version": "ada218f9a93b5f1c6dce48a4cc9ff01fcba431e7",
         "model_params": {
             "temperature": 0.7,
             "repetition_penalty": 1.75,
@@ -41,16 +41,6 @@
             "top_p": 0.9,
             "max_new_tokens": 200
         },
-        "registration_params": {
-            "batch_size": 1,
-            "max_batch_delay": 200,
-            "response_timeout": 2000
-        }
-    },
-    "phi-1_5": {
-        "handler": "handler.py",
-        "repo_id": "microsoft/phi-1_5",
-        "repo_version": "b6a7e2fe15c21f5847279f23e280cc5a0e7049ef",
         "registration_params": {
             "batch_size": 1,
             "max_batch_delay": 200,
