@@ -12,6 +12,7 @@ import sys
 import platform
 import time
 import json
+import torch
 from typing import Tuple, Dict
 import requests
 from utils.inference_data_model import InferenceDataModel, TorchserveStartData
@@ -210,6 +211,9 @@ def set_model_precision(quantize_bits: int) -> None:
     """
     if quantize_bits not in [4, 8, 16]:
         print("## Quantization precision bits should be either 4, 8 or 16")
+        sys.exit(1)
+    elif quantize_bits in [4, 8] and not torch.cuda.is_available():
+        print("## BitsAndBytes Quantization requires GPUs")
         sys.exit(1)
     else:
         os.environ["NAI_QUANTIZATION"] = str(quantize_bits)

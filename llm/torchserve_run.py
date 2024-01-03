@@ -116,10 +116,11 @@ def run_inference(params: argparse.Namespace) -> None:
     if params.data:
         check_if_path_exists(params.data, "Input data folder", is_dir=True)
 
+    ts.set_model_precision(params.quantize_bits)
     create_folder_if_not_exists(
         os.path.join(os.path.dirname(__file__), "utils", params.gen_folder_name)
     )
-    ts.set_model_precision(params.quantize_bits)
+    
     ts.set_model_params(params.model_name)
     run_inference_with_mar(params)
 
