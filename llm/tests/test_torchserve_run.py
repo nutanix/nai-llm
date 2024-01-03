@@ -14,6 +14,7 @@ import generate
 from tests.test_generate import (
     MODEL_STORE,
     MODEL_NAME,
+    MODEL_CONFIG_PATH,
     set_generate_args,
     custom_model_restore,
     custom_model_setup,
@@ -23,6 +24,31 @@ from tests.test_generate import (
 INPUT_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "qa"
 )
+
+
+def change_model_weight_precision(quantization_precision: int) -> None:
+    """
+    This function is used to change the quantization precision of gpt2
+    model in model_config.json file.
+
+    Args:
+        quantization_precision (int): The precision to which the model
+                                      weights are to be quantized.
+
+    Returns:
+        None
+    """
+    with open(MODEL_CONFIG_PATH, "r", encoding="UTF-8") as file:
+        data = json.load(file)
+
+    if "model_params" in data["gpt2"]:
+        data["gpt2"]["model_params"]["quantization_precision"] = quantization_precision
+    else:
+        data["gpt2"]["model_params"] = {
+            "quantization_precision": quantization_precision
+        }
+    with open(MODEL_CONFIG_PATH, "w", encoding="UTF-8") as file:
+        json.dump(data, file, indent=4)
 
 
 def test_generate_mar_success() -> None:
@@ -199,6 +225,26 @@ def test_inference_json_file_success() -> None:
         assert output["id"] and output["outputs"]
     except (json.JSONDecodeError, ValueError, KeyError):
         assert False
+
+
+def test_quantization_4bit_success() -> None:
+    """
+    This function tests the 4 bit quantized GPT2 model with input path.
+    Expected result: Success.
+    """
+    change_model_weight_precision(4)
+    process = subprocess.run(get_run_cmd(input_path=INPUT_PATH), check=False)
+    assert process.returncode == 0
+
+
+def test_quantization_8bit_success() -> None:
+    """
+    This function tests the 8 bit quantized GPT2 model with input path.
+    Expected result: Success.
+    """
+    change_model_weight_precision(8)
+    process = subprocess.run(get_run_cmd(input_path=INPUT_PATH), check=False)
+    assert process.returncode == 0
 
 
 def test_custom_model_skip_download_success() -> None:

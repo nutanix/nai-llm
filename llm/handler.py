@@ -104,8 +104,34 @@ class LLMHandler(BaseHandler, ABC):
         self.tokenizer.padding_side = "left"
         logger.info("Tokenizer loaded successfully")
 
+        quantization_precision = 16
+        if os.environ.get("NAI_QUANTIZATION"):
+            quantization_precision = int(self.get_env_value("NAI_QUANTIZATION"))
+
+        if quantization_precision == 4:
+            bnb_config = transformers.BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_use_double_quant=False,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.bfloat16,
+            )
+            quantization_config = bnb_config
+            logger.info(
+                "Loading Model with %s bit Quantization", quantization_precision
+            )
+        elif quantization_precision == 8:
+            bnb_config = transformers.BitsAndBytesConfig(load_in_8bit=True)
+            quantization_config = bnb_config
+            logger.info(
+                "Loading Model with %s bit Quantization", quantization_precision
+            )
+        else:
+            quantization_config = None
+            logger.info("Loading Model without Quantization")
+
         self.model = transformers.AutoModelForCausalLM.from_pretrained(
             model_dir,
+            quantization_config=quantization_config,
             torch_dtype=torch.bfloat16,  # Load model weights in bfloat16
             device_map=self.device_map,
             local_files_only=True,

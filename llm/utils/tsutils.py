@@ -178,6 +178,7 @@ def set_model_params(model_name: str) -> None:
         "NAI_REP_PENALTY": "repetition_penalty",
         "NAI_TOP_P": "top_p",
         "NAI_MAX_TOKENS": "max_new_tokens",
+        "NAI_QUANTIZATION": "quantization_precision",
     }
     # Set the new environment variables with the provided values in model_config and
     # delete the environment variable value if not specified in model_config
