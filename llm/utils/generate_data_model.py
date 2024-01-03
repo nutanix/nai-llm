@@ -87,9 +87,7 @@ class GenerateDataModel:
         self.skip_download = params.skip_download
         self.debug = params.debug
 
-        self.repo_info.hf_token = params.hf_token
-        if os.environ.get("HF_TOKEN") and params.hf_token is None:
-            self.repo_info.hf_token = os.environ.get("HF_TOKEN")
+        self.repo_info.hf_token = params.hf_token or os.environ.get("HF_TOKEN")
         self.repo_info.repo_id = params.repo_id
         self.repo_info.repo_version = params.repo_version
 
