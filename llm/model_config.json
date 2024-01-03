@@ -7,8 +7,7 @@
             "temperature": 0.7,
             "repetition_penalty": 1.75,
             "top_p": 1.0,
-            "max_new_tokens": 200,
-            "quantization_precision": 16
+            "max_new_tokens": 200
         },
         "registration_params": {
             "batch_size": 1,
@@ -24,8 +23,7 @@
             "temperature": 0.5,
             "repetition_penalty": 2.0,
             "top_p": 0.9,
-            "max_new_tokens": 200,
-            "quantization_precision": 16
+            "max_new_tokens": 200
         },
         "registration_params": {
             "batch_size": 1,
@@ -41,8 +39,7 @@
             "temperature": 0.6,
             "repetition_penalty": 1.75,
             "top_p": 0.9,
-            "max_new_tokens": 200,
-            "quantization_precision": 16
+            "max_new_tokens": 200
         },
         "registration_params": {
             "batch_size": 1,
@@ -54,9 +51,6 @@
         "handler": "handler.py",
         "repo_id": "gpt2",
         "repo_version": "11c5a3d5811f50298f278a704980280950aedb10",
-        "model_params": {
-            "quantization_precision": 16
-        },
         "registration_params": {
             "batch_size": 1,
             "max_batch_delay": 200,
@@ -67,9 +61,6 @@
         "handler": "handler.py",
         "repo_id": "codellama/CodeLlama-7b-Python-hf",
         "repo_version": "7ee7b6beb0dece09b0431ea46c03bc1724e21572",
-        "model_params": {
-            "quantization_precision": 16
-        },
         "registration_params": {
             "batch_size": 1,
             "max_batch_delay": 200,
@@ -80,9 +71,6 @@
         "handler": "handler.py",
         "repo_id": "meta-llama/Llama-2-7b-chat-hf",
         "repo_version": "94b07a6e30c3292b8265ed32ffdeccfdadf434a8",
-        "model_params": {
-            "quantization_precision": 16
-        },
         "registration_params": {
             "batch_size": 1,
             "max_batch_delay": 200,

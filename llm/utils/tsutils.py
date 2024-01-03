@@ -8,6 +8,7 @@ Attributes:
                                          different operating systems.
 """
 import os
+import sys
 import platform
 import time
 import json
@@ -178,7 +179,6 @@ def set_model_params(model_name: str) -> None:
         "NAI_REP_PENALTY": "repetition_penalty",
         "NAI_TOP_P": "top_p",
         "NAI_MAX_TOKENS": "max_new_tokens",
-        "NAI_QUANTIZATION": "quantization_precision",
     }
     # Set the new environment variables with the provided values in model_config and
     # delete the environment variable value if not specified in model_config
@@ -197,6 +197,22 @@ def set_model_params(model_name: str) -> None:
                 for param_name, param_value in generation_params.items():
                     if param_name in os.environ:
                         del os.environ[param_name]
+
+
+def set_model_precision(quantize_bits: int) -> None:
+    """
+    This function reads the precision to which the model weights are to be
+    quantized and sets it as environment variable for the handler
+    to read.
+
+    Args:
+        quantize_bits (int): BitsAndBytes Quantization Precision.
+    """
+    if quantize_bits not in [4, 8, 16]:
+        print("## Quantization precision bits should be either 4, 8 or 16")
+        sys.exit(1)
+    else:
+        os.environ["NAI_QUANTIZATION"] = str(quantize_bits)
 
 
 def get_params_for_registration(model_name: str) -> Tuple[str, str, str, str]:

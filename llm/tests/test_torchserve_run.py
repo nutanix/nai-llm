@@ -14,7 +14,6 @@ import generate
 from tests.test_generate import (
     MODEL_STORE,
     MODEL_NAME,
-    MODEL_CONFIG_PATH,
     set_generate_args,
     custom_model_restore,
     custom_model_setup,
@@ -24,31 +23,6 @@ from tests.test_generate import (
 INPUT_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "qa"
 )
-
-
-def change_model_weight_precision(quantization_precision: int) -> None:
-    """
-    This function is used to change the quantization precision of gpt2
-    model in model_config.json file.
-
-    Args:
-        quantization_precision (int): The precision to which the model
-                                      weights are to be quantized.
-
-    Returns:
-        None
-    """
-    with open(MODEL_CONFIG_PATH, "r", encoding="UTF-8") as file:
-        data = json.load(file)
-
-    if "model_params" in data["gpt2"]:
-        data["gpt2"]["model_params"]["quantization_precision"] = quantization_precision
-    else:
-        data["gpt2"]["model_params"] = {
-            "quantization_precision": quantization_precision
-        }
-    with open(MODEL_CONFIG_PATH, "w", encoding="UTF-8") as file:
-        json.dump(data, file, indent=4)
 
 
 def test_generate_mar_success() -> None:
@@ -65,6 +39,7 @@ def get_run_cmd(
     model_store: str = MODEL_STORE,
     input_path: str = "",
     repo_version: str = "",
+    quantize_bits: int = 0,
 ) -> List[str]:
     """
     This function is used to generate the bash command to be run using given
@@ -88,6 +63,8 @@ def get_run_cmd(
         cmd = f"{cmd} -d {input_path}"
     if repo_version:
         cmd = f"{cmd} -v {repo_version}"
+    if quantize_bits:
+        cmd = f"{cmd} -q {quantize_bits}"
     return cmd.split()
 
 
@@ -232,8 +209,9 @@ def test_quantization_4bit_success() -> None:
     This function tests the 4 bit quantized GPT2 model with input path.
     Expected result: Success.
     """
-    change_model_weight_precision(4)
-    process = subprocess.run(get_run_cmd(input_path=INPUT_PATH), check=False)
+    process = subprocess.run(
+        get_run_cmd(input_path=INPUT_PATH, quantize_bits=4), check=False
+    )
     assert process.returncode == 0
 
 
@@ -242,8 +220,9 @@ def test_quantization_8bit_success() -> None:
     This function tests the 8 bit quantized GPT2 model with input path.
     Expected result: Success.
     """
-    change_model_weight_precision(8)
-    process = subprocess.run(get_run_cmd(input_path=INPUT_PATH), check=False)
+    process = subprocess.run(
+        get_run_cmd(input_path=INPUT_PATH, quantize_bits=8), check=False
+    )
     assert process.returncode == 0
 
 
