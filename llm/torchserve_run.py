@@ -120,7 +120,7 @@ def run_inference(params: argparse.Namespace) -> None:
     create_folder_if_not_exists(
         os.path.join(os.path.dirname(__file__), "utils", params.gen_folder_name)
     )
-    
+
     ts.set_model_params(params.model_name)
     run_inference_with_mar(params)
 
