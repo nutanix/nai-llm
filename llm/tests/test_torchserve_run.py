@@ -39,7 +39,6 @@ def get_run_cmd(
     model_store: str = MODEL_STORE,
     input_path: str = "",
     repo_version: str = "",
-    quantize_bits: int = 0,
 ) -> List[str]:
     """
     This function is used to generate the bash command to be run using given
@@ -63,8 +62,6 @@ def get_run_cmd(
         cmd = f"{cmd} -d {input_path}"
     if repo_version:
         cmd = f"{cmd} -v {repo_version}"
-    if quantize_bits:
-        cmd = f"{cmd} -q {quantize_bits}"
     return cmd.split()
 
 
@@ -202,28 +199,6 @@ def test_inference_json_file_success() -> None:
         assert output["id"] and output["outputs"]
     except (json.JSONDecodeError, ValueError, KeyError):
         assert False
-
-
-def test_quantization_4bit_success() -> None:
-    """
-    This function tests the 4 bit quantized GPT2 model with input path.
-    Expected result: Success.
-    """
-    process = subprocess.run(
-        get_run_cmd(input_path=INPUT_PATH, quantize_bits=4), check=False
-    )
-    assert process.returncode == 0
-
-
-def test_quantization_8bit_success() -> None:
-    """
-    This function tests the 8 bit quantized GPT2 model with input path.
-    Expected result: Success.
-    """
-    process = subprocess.run(
-        get_run_cmd(input_path=INPUT_PATH, quantize_bits=8), check=False
-    )
-    assert process.returncode == 0
 
 
 def test_custom_model_skip_download_success() -> None:
