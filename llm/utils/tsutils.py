@@ -12,8 +12,8 @@ import sys
 import platform
 import time
 import json
-import torch
 from typing import Tuple, Dict
+import torch
 import requests
 from utils.inference_data_model import InferenceDataModel, TorchserveStartData
 from utils.system_utils import check_if_path_exists
