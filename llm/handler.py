@@ -104,9 +104,8 @@ class LLMHandler(BaseHandler, ABC):
         self.tokenizer.padding_side = "left"
         logger.info("Tokenizer loaded successfully")
 
-        quantize_bits = 16
-        if os.environ.get("NAI_QUANTIZATION"):
-            quantize_bits = int(self.get_env_value("NAI_QUANTIZATION"))
+        quantize_bits = self.get_env_value("NAI_QUANTIZATION")
+        quantize_bits = int(quantize_bits) if quantize_bits else quantize_bits
 
         if quantize_bits == 4:
             bnb_config = transformers.BitsAndBytesConfig(

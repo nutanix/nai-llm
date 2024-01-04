@@ -222,10 +222,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--quantize_bits",
-        type=int,
-        default=16,
-        metavar="qb",
-        help="BitsAndBytes Quantization Precision (4, 8 or 16)",
+        type=str,
+        default="",
+        help="BitsAndBytes Quantization Precision (4 or 8)",
     )
     args = parser.parse_args()
     torchserve_run(args)

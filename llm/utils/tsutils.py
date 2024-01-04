@@ -209,14 +209,14 @@ def set_model_precision(quantize_bits: int) -> None:
     Args:
         quantize_bits (int): BitsAndBytes Quantization Precision.
     """
-    if quantize_bits not in [4, 8, 16]:
-        print("## Quantization precision bits should be either 4, 8 or 16")
+    if quantize_bits and int(quantize_bits) not in [4, 8]:
+        print("## Quantization precision bits should be either 4 or 8")
         sys.exit(1)
-    elif quantize_bits in [4, 8] and not torch.cuda.is_available():
+    elif quantize_bits and not torch.cuda.is_available():
         print("## BitsAndBytes Quantization requires GPUs")
         sys.exit(1)
     else:
-        os.environ["NAI_QUANTIZATION"] = str(quantize_bits)
+        os.environ["NAI_QUANTIZATION"] = quantize_bits
 
 
 def get_params_for_registration(model_name: str) -> Tuple[str, str, str, str]:
