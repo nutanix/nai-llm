@@ -210,7 +210,9 @@ def set_model_precision(quantize_bits: int) -> None:
         quantize_bits (int): BitsAndBytes Quantization Precision.
     """
     if quantize_bits and int(quantize_bits) not in [4, 8]:
-        print("## Quantization precision bits should be either 4 or 8")
+        print(
+            "## Quantization precision bits should be either 4 or 8. Default precision used is 16"
+        )
         sys.exit(1)
     elif quantize_bits and not torch.cuda.is_available():
         print("## BitsAndBytes Quantization requires GPUs")
