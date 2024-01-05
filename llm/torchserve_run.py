@@ -116,6 +116,7 @@ def run_inference(params: argparse.Namespace) -> None:
     if params.data:
         check_if_path_exists(params.data, "Input data folder", is_dir=True)
 
+    ts.set_model_precision(params.quantize_bits)
     create_folder_if_not_exists(
         os.path.join(os.path.dirname(__file__), "utils", params.gen_folder_name)
     )
@@ -218,6 +219,12 @@ if __name__ == "__main__":
         default="",
         metavar="model_store",
         help="absolute path to the model store directory",
+    )
+    parser.add_argument(
+        "--quantize_bits",
+        type=str,
+        default="",
+        help="BitsAndBytes Quantization Precision (4 or 8)",
     )
     args = parser.parse_args()
     torchserve_run(args)
