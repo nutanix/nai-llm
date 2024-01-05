@@ -122,9 +122,11 @@ class GenerateDataModel:
             and self.repo_info.hf_token is None
         ):
             print(
-                "## Error: HuggingFace Hub token is required for llama download."
-                " Please specify it using --hf_token=<your token>. "
-                "Refer https://huggingface.co/docs/hub/security-tokens"
+                (
+                    "HuggingFace Hub token is required for llama download. "
+                    "Please specify it using --hf_token=<your token> argument "
+                    ". Refer https://huggingface.co/docs/hub/security-tokens"
+                )
             )
             sys.exit(1)
 
