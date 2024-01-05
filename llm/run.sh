@@ -5,7 +5,7 @@ wdir=$(dirname "$SCRIPT")
 helpFunction()
 {
    echo ""
-   echo "Usage: $0 -n <MODEL_NAME> -a <MAR_EXPORT_PATH> [OPTIONAL -d <INPUT_PATH> -v <REPO_VERSION>]"
+   echo "Usage: $0 -n <MODEL_NAME> -a <MAR_EXPORT_PATH> [OPTIONAL -d <INPUT_PATH> -v <REPO_VERSION> -q <QUANTIZE_BITS>]"
    echo -e "\t-n Name of the Model"
    echo -e "\t-v HuggingFace repository version (optional)"
    echo -e "\t-d Absolute path of input data folder (optional)"
