@@ -5,21 +5,23 @@ wdir=$(dirname "$SCRIPT")
 helpFunction()
 {
    echo ""
-   echo "Usage: $0 -n <MODEL_NAME> -a <MAR_EXPORT_PATH> [OPTIONAL -d <INPUT_PATH> -v <REPO_VERSION>]"
+   echo "Usage: $0 -n <MODEL_NAME> -a <MAR_EXPORT_PATH> [OPTIONAL -d <INPUT_PATH> -v <REPO_VERSION> -q <QUANTIZE_BITS>]"
    echo -e "\t-n Name of the Model"
    echo -e "\t-v HuggingFace repository version (optional)"
    echo -e "\t-d Absolute path of input data folder (optional)"
    echo -e "\t-a Absolute path to the Model Store directory"
+   echo -e "\t-q BitsAndBytes Quantization Precision (4 or 8) (optional)"
    exit 1 # Exit script after printing help
 }
 
-while getopts ":n:v:d:a:o:r" opt;
+while getopts ":n:v:d:q:a:" opt;
 do
    case "$opt" in
         n ) model_name="$OPTARG" ;;
         v ) repo_version="$OPTARG" ;;
         d ) data="$OPTARG" ;;
         a ) model_store="$OPTARG" ;;
+        q ) quantize_bits="$OPTARG" ;;
         ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
    esac
 done
@@ -52,6 +54,10 @@ function create_execution_cmd()
 
     if [ ! -z "$data" ] ; then
         cmd+=" --data $data"
+    fi
+
+    if [ ! -z "$quantize_bits" ] ; then
+        cmd+=" --quantize_bits $quantize_bits"
     fi
 }
 

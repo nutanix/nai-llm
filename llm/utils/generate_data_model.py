@@ -87,7 +87,7 @@ class GenerateDataModel:
         self.skip_download = params.skip_download
         self.debug = params.debug
 
-        self.repo_info.hf_token = params.hf_token
+        self.repo_info.hf_token = params.hf_token or os.environ.get("HF_TOKEN")
         self.repo_info.repo_id = params.repo_id
         self.repo_info.repo_version = params.repo_version
 
@@ -122,9 +122,12 @@ class GenerateDataModel:
             and self.repo_info.hf_token is None
         ):
             print(
-                "## Error: HuggingFace Hub token is required for llama download."
-                " Please specify it using --hf_token=<your token>. "
-                "Refer https://huggingface.co/docs/hub/security-tokens"
+                (
+                    "HuggingFace Hub token is required for llama download. "
+                    "Please specify it using --hf_token=<your token> argument "
+                    "or set it as an environment variable 'HF_TOKEN'. Refer "
+                    "https://huggingface.co/docs/hub/security-tokens"
+                )
             )
             sys.exit(1)
 
