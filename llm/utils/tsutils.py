@@ -7,6 +7,7 @@ Attributes:
     torch_model_archiver_command (dict): Contains the torch-model-archiver command in
                                          different operating systems.
 """
+
 import os
 import sys
 import platform

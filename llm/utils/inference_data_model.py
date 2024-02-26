@@ -2,6 +2,7 @@
 This module stores the dataclasses InferenceDataModel, TorchserveStartData
 and function prepare_settings to set the InferenceDataModel's ts_data.
 """
+
 import argparse
 import os
 import dataclasses
