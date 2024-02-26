@@ -75,6 +75,7 @@ class LLMHandler(BaseHandler, ABC):
         self.device = None
         self.model = None
         self.device_map = None
+        self.request = None
 
     def initialize(self, context):
         """
