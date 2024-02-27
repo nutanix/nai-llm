@@ -177,7 +177,6 @@ class LLMHandler(BaseHandler, ABC):
                 self.request["request_type"][idx] = "raw"
                 input_list.append(row_input)
 
-        logger.info("Received text: %s", ", ".join(map(str, input_list)))
         encoded_input = self.tokenizer(input_list, padding=True, return_tensors="pt")[
             "input_ids"
         ].to(self.device)
@@ -220,7 +219,6 @@ class LLMHandler(BaseHandler, ABC):
 
         inference = []
         inference = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-        logger.info("Generated text is: %s", ", ".join(map(str, inference)))
         return inference
 
     def postprocess(self, data: List[str]) -> List[str]:
