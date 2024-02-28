@@ -4,6 +4,7 @@ This module runs pytest tests for run.sh file.
 Attributes:
     INPUT_PATH: Path to input data folder.
 """
+
 import os
 import subprocess
 from typing import List

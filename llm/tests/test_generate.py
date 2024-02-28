@@ -8,6 +8,7 @@ Attributes:
     MODEL_CONFIG_PATH: Path to model_config.json file.
     MODEL_TEMP_CONFIG_PATH: Path to backup model_config.json file.
 """
+
 import os
 import argparse
 import shutil

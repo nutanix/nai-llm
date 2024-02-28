@@ -3,6 +3,7 @@ Serves as a handler for a LLM, allowing it to be used in an inference service.
 The handler provides functions to preprocess input data, make predictions using the model, 
 and post-process the output for a particular use case.
 """
+
 import logging
 import os
 from abc import ABC
@@ -70,16 +71,12 @@ class LLMHandler(BaseHandler, ABC):
     def __init__(self):
         super().__init__()
         self.initialized = False
-        self.request = {
-            "request_list": defaultdict(int),
-            "request_ids": defaultdict(int),
-            "request_type": defaultdict(int),
-        }
         self.tokenizer = None
         self.map_location = None
         self.device = None
         self.model = None
         self.device_map = None
+        self.request = None
 
     def initialize(self, context):
         """
@@ -147,6 +144,11 @@ class LLMHandler(BaseHandler, ABC):
             Tensor: Tokenized input data
         """
         input_list = []
+        self.request = {
+            "request_list": defaultdict(int),
+            "request_ids": defaultdict(int),
+            "request_type": defaultdict(int),
+        }
 
         for idx, input_data in enumerate(data):
             # Pre-process for Kserve v2 format
@@ -175,7 +177,6 @@ class LLMHandler(BaseHandler, ABC):
                 self.request["request_type"][idx] = "raw"
                 input_list.append(row_input)
 
-        logger.info("Received text: %s", ", ".join(map(str, input_list)))
         encoded_input = self.tokenizer(input_list, padding=True, return_tensors="pt")[
             "input_ids"
         ].to(self.device)
@@ -218,7 +219,6 @@ class LLMHandler(BaseHandler, ABC):
 
         inference = []
         inference = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-        logger.info("Generated text is: %s", ", ".join(map(str, inference)))
         return inference
 
     def postprocess(self, data: List[str]) -> List[str]:
