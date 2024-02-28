@@ -5,6 +5,7 @@ deletes all temporary files and directories generated during the run.
 Attributes:
     dirpath (str): Stores parent directory of module
 """
+
 import os
 from utils.shell_utils import rm_dir
 import utils.tsutils as ts

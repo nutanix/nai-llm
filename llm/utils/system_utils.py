@@ -4,6 +4,7 @@ This module contains utilities to run system operations.
 Attributes:
     nvidia_smi_cmd (dict): Contains the nvidia-smi command in different operating systems.
 """
+
 import os
 import sys
 from typing import List

@@ -4,6 +4,7 @@ This module contains utilities for MAR file generation
 Attributes:
     MAR_NAME_LEN (int): Number of characters to include from repo_version in MAR name
 """
+
 import os
 import sys
 import time

@@ -5,6 +5,7 @@ the given inputs after validating all the input parameters required to do the sa
 Attributes:
     MODEL_CONFIG_PATH (str): Path to model_config.json file.
 """
+
 import os
 import argparse
 import json

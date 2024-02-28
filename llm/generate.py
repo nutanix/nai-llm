@@ -6,6 +6,7 @@ Attributes:
     during download and validation of model files.
     MAR_CONFIG_PATH (str): Path of model_config.json.
 """
+
 import os
 import argparse
 import json
