@@ -11,3 +11,4 @@ torchserve==0.8.2
 torch-model-archiver==0.8.1
 einops==0.6.1
 bitsandbytes==0.41.1
+setuptools==69.5.1
