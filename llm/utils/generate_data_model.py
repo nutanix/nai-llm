@@ -8,7 +8,13 @@ import os
 import dataclasses
 import sys
 import huggingface_hub as hfh
-from huggingface_hub.utils import HfHubHTTPError, HFValidationError
+from huggingface_hub.utils import (
+    HfHubHTTPError,
+    HFValidationError,
+    GatedRepoError,
+    RepositoryNotFoundError,
+    RevisionNotFoundError,
+)
 
 
 @dataclasses.dataclass
@@ -131,7 +137,7 @@ class GenerateDataModel:
             )
             sys.exit(1)
 
-    def validate_commit_info(self) -> str:
+    def validate_commit_info(self) -> None:
         """
         This method validates the HuggingFace repository information and
         sets the latest commit ID of the model if repo_version is None.
@@ -149,6 +155,41 @@ class GenerateDataModel:
                 self.repo_info.repo_version = commit_info[0].commit_id
 
         except (HfHubHTTPError, HFValidationError):
+            print(
+                "## Error: Please check either repo_id, repo_version"
+                " or HuggingFace ID is not correct\n"
+            )
+            sys.exit(1)
+
+    def get_repo_file_extensions(self) -> set:
+        """
+        This function returns set of all file extensions in the Hugging Face repo of
+        the model.
+        Returns:
+            repo_file_extension (set): The set of all file extensions in the
+                                       Hugging Face repo of the model
+        Raises:
+            sys.exit(1): If repo_id, repo_version or huggingface token
+                        is not valid, the function will terminate
+                        the program with an exit code of 1.
+        """
+        try:
+            hf_api = hfh.HfApi()
+            repo_files = hf_api.list_repo_files(
+                repo_id=self.repo_info.repo_id,
+                revision=self.repo_info.repo_version,
+                token=self.repo_info.hf_token,
+            )
+            return {os.path.splitext(file_name)[1] for file_name in repo_files}
+        except (
+            GatedRepoError,
+            RepositoryNotFoundError,
+            RevisionNotFoundError,
+            HfHubHTTPError,
+            HFValidationError,
+            ValueError,
+            KeyError,
+        ):
             print(
                 "## Error: Please check either repo_id, repo_version"
                 " or HuggingFace ID is not correct\n"
