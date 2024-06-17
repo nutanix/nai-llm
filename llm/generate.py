@@ -214,13 +214,20 @@ def run_download(gen_model: GenerateDataModel) -> GenerateDataModel:
         f" with version {gen_model.repo_info.repo_version}\n"
     )
 
+    tmp_hf_cache = os.path.join(gen_model.mar_utils.model_path, "tmp_hf_cache")
+    create_folder_if_not_exists(tmp_hf_cache)
+
     hfh.snapshot_download(
         repo_id=gen_model.repo_info.repo_id,
         revision=gen_model.repo_info.repo_version,
         local_dir=gen_model.mar_utils.model_path,
         token=gen_model.repo_info.hf_token,
+        local_dir_use_symlinks=False,
+        cache_dir=tmp_hf_cache,
+        force_download=True,
         ignore_patterns=get_ignore_pattern_list(gen_model),
     )
+    rm_dir(tmp_hf_cache)
     print("## Successfully downloaded model_files\n")
     return gen_model
 
