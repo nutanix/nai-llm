@@ -89,6 +89,7 @@ def get_all_files_in_directory(directory):
         str(file.relative_to(directory_path))
         for file in directory_path.rglob("*")
         if file.is_file()
+        and ".huggingface/" not in str(file)  # Ignore Hugging Face cache
     ]
     return output
 

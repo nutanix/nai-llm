@@ -11,8 +11,6 @@ import os
 import argparse
 import json
 import sys
-from collections import Counter
-import re
 import uuid
 from typing import List
 import huggingface_hub as hfh
@@ -21,99 +19,48 @@ from utils.system_utils import (
     check_if_path_exists,
     check_if_folder_empty,
     create_folder_if_not_exists,
-    get_all_files_in_directory,
 )
 from utils.shell_utils import mv_file, rm_dir
 from utils.generate_data_model import GenerateDataModel
 
-FILE_EXTENSIONS_TO_IGNORE = [
-    ".safetensors",
-    ".safetensors.index.json",
-    ".h5",
-    ".ot",
-    ".tflite",
-    ".msgpack",
-    ".onnx",
+PREFERRED_MODEL_FORMATS = [".safetensors", ".bin"]  # In order of Preference
+OTHER_MODEL_FORMATS = [
+    "*.pt",
+    "*.h5",
+    "*.gguf",
+    "*.msgpack",
+    "*.tflite",
+    "*.ot",
+    "*.onnx",
 ]
 
 MODEL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "model_config.json")
 
 
-def get_ignore_pattern_list(extension_list: List[str]) -> List[str]:
+def get_ignore_pattern_list(gen_model: GenerateDataModel) -> List[str]:
     """
-    This function takes a list of file extensions and returns a list of patterns that
-    can be used to filter out files with these extensions during model download.
+    This method creates a list of file extensions to ignore from a priority list based on files
+    present in the Hugging Face Repo. It filters out extensions not found in the repository and
+    returns them as ignore patterns prefixed with '*' which is expected by Hugging Face client.
 
     Args:
-        extension_list (list(str)): A list of file extensions.
+        gen_model (GenerateDataModel): An instance of the GenerateDataModel class
 
     Returns:
         list(str): A list of patterns with '*' prepended to each extension,
                     suitable for filtering files.
     """
-    return ["*" + pattern for pattern in extension_list]
-
-
-def compare_lists(list1: List[str], list2: List[str]) -> bool:
-    """
-    This function checks if two lists are equal by comparing their contents,
-    regardless of the order.
-
-    Args:
-        list1 (list(str)): The first list to compare.
-        list2 (list(str)): The second list to compare.
-
-    Returns:
-        bool: True if the lists have the same elements, False otherwise.
-    """
-    return Counter(list1) == Counter(list2)
-
-
-def filter_files_by_extension(
-    filenames: List[str], extensions_to_remove: List[str]
-) -> List[str]:
-    """
-    This function takes a list of filenames and a list of extensions to remove.
-    It returns a new list of filenames after filtering out those with specified extensions.
-    It uses regex patterns to filter filenames
-
-    Args:
-        filenames (list(str)): A list of filenames to be filtered.
-        extensions_to_remove (list(str)): A list of file extensions to remove.
-
-    Returns:
-        list(str): A list of filenames after filtering.
-    """
-    pattern = "|".join([re.escape(suffix) + "$" for suffix in extensions_to_remove])
-    # for FILE_EXTENSIONS_TO_IGNORE the pattern will be '\.safetensors$|\.safetensors\.index\.json$'
-    filtered_filenames = [
-        filename for filename in filenames if not re.search(pattern, filename)
-    ]
-    return filtered_filenames
-
-
-def check_if_model_files_exist(gen_model: GenerateDataModel) -> bool:
-    """
-    This function compares the list of files in the downloaded model directory with the
-    list of files in the HuggingFace repository. It takes into account any files to
-    ignore based on predefined extensions.
-
-    Args:
-        gen_model (GenerateDataModel): An instance of the GenerateDataModel dataclass
-
-    Returns:
-        bool: True if the downloaded model files match the expected
-              repository files, False otherwise.
-    """
-    extra_files_list = get_all_files_in_directory(gen_model.mar_utils.model_path)
-    hf_api = hfh.HfApi()
-    repo_files = hf_api.list_repo_files(
-        repo_id=gen_model.repo_info.repo_id,
-        revision=gen_model.repo_info.repo_version,
-        token=gen_model.repo_info.hf_token,
-    )
-    repo_files = filter_files_by_extension(repo_files, FILE_EXTENSIONS_TO_IGNORE)
-    return compare_lists(extra_files_list, repo_files)
+    repo_file_extensions = gen_model.get_repo_file_extensions()
+    for desired_extension in PREFERRED_MODEL_FORMATS:
+        if desired_extension in repo_file_extensions:
+            ignore_list = [
+                "*" + ignore_extension
+                for ignore_extension in PREFERRED_MODEL_FORMATS
+                if ignore_extension != desired_extension
+            ]
+            ignore_list.extend(OTHER_MODEL_FORMATS)
+            return ignore_list
+    return []
 
 
 def create_tmp_model_store(mar_output: str, mar_name: str) -> str:
@@ -271,9 +218,8 @@ def run_download(gen_model: GenerateDataModel) -> GenerateDataModel:
         repo_id=gen_model.repo_info.repo_id,
         revision=gen_model.repo_info.repo_version,
         local_dir=gen_model.mar_utils.model_path,
-        local_dir_use_symlinks=False,
         token=gen_model.repo_info.hf_token,
-        ignore_patterns=get_ignore_pattern_list(FILE_EXTENSIONS_TO_IGNORE),
+        ignore_patterns=get_ignore_pattern_list(gen_model),
     )
     print("## Successfully downloaded model_files\n")
     return gen_model
@@ -289,10 +235,8 @@ def create_mar(gen_model: GenerateDataModel) -> None:
     Args:
         gen_model (GenerateDataModel): An instance of the GenerateDataModel dataclass
     """
-    if not (
-        gen_model.is_custom_model and gen_model.skip_download
-    ) and not check_if_model_files_exist(gen_model):
-        print("## Model files do not match HuggingFace repository files")
+    if check_if_folder_empty(gen_model.mar_utils.model_path):
+        print("## Model files not present in Model Path directory")
         sys.exit(1)
 
     # Creates a temporary directory with the mar_name inside model_store
